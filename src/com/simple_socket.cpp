@@ -1,4 +1,5 @@
 #include <arpa/inet.h>
+#include <cstring>
 #include <netinet/in.h>
 #include <stdio.h>
 #include <stdlib.h>
@@ -6,6 +7,8 @@
 #include <unistd.h>
 
 #include "simple_socket.h"
+
+#define BUFFER_BYTES 4096
 
 void error(const char* msg) {
 	perror(msg);
@@ -47,7 +50,8 @@ void simple_socket::init_client(const char* ip, int port) {
 	if (inet_pton(AF_INET, ip, &server_addr.sin_addr) <= 0) {
 		error("init_client: inet_pton failed");
 	}
-	if (connect(socket_fd, (struct sockaddr *) &server_addr, sizeof(server_addr)) < 0) {
+	if (connect(socket_fd, (struct sockaddr *) &server_addr,
+			sizeof(server_addr)) < 0) {
 		error("init_client: connect failed");
 	}
 }
@@ -56,11 +60,28 @@ void simple_socket::close() {
 	::close(socket_fd);
 }
 
-void simple_socket::write(const char* bytes, long size) {
-	::write(socket_fd , bytes , size);
+void simple_socket::write(const char* data, long bytes) {
+	::write(socket_fd, &bytes, sizeof(bytes));
+	::write(socket_fd, data, bytes);
 }
 
-long simple_socket::read(char* bytes) {
-	// TODO: add buffer
-	return ::read(socket_fd, bytes, 4096);
+long simple_socket::read(char* &data) {
+	if (data != NULL) {
+		delete data;
+	}
+	long bytes;
+	::read(socket_fd, &bytes, sizeof(bytes));
+	data = new char[bytes];
+	char buffer[BUFFER_BYTES];
+	int read_bytes;
+	long offset = 0L;
+	while (offset < bytes) {
+		read_bytes = ::read(socket_fd, buffer, BUFFER_BYTES);
+		if (read_bytes < 0) {
+			error("read failed");
+		}
+		memcpy(data + offset, buffer, read_bytes);
+		offset += read_bytes;
+	}
+	return bytes;
 }

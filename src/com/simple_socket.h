@@ -10,8 +10,8 @@ public:
 	void init_server(int port);
 	void init_client(const char* ip, int port);
 	void close();
-	void write(const char* bytes, long size);
-	long read(char* bytes);
+	void write(const char* data, long bytes);
+	long read(char* &data);
 };
 
 #endif /* SIMPLE_SOCKET_H_ */
