@@ -1,22 +1,14 @@
-all: hello_world
+FLAGS=-g -Wall
+LIBPATH=-L"../lib"
+LIBS=-lcryptopp
 
-hello_world: hello_world.o
-	g++ -o hello_world hello_world.o
+all: test
 
-hello_world.o: hello_world.cpp
-	g++ -c hello_world.cpp
-	
-server: server.o
-	g++ -o server server.o
-	
-server.o: server.cpp
-	g++ -c server.cpp
-	
-client: client.o
-	g++ -o client client.o
-	
-client.o: client.cpp
-	g++ -c client.cpp
+test: test.o
+	g++ -o test test.o $(LIBPATH) $(LIBS) 
 
+test.o: test.cpp
+	g++ $(FLAGS) -c test.cpp
+	
 clean:
-	rm -f *.o hello_world
+	rm -rf *.o test

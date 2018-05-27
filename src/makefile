@@ -1,4 +1,6 @@
 FLAGS=-g -Wall
+LIBPATH=-L"../lib"
+LIBS=-lcryptopp
 
 all: ui
 

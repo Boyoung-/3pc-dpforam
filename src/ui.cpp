@@ -50,6 +50,8 @@ int main(int argc, const char* argv[]) {
 	}
 
 	cout << "Closing connections... " << flush;
+	cons[0]->close();
+	cons[1]->close();
 	delete cons[0];
 	delete cons[1];
 	cout << "done" << endl;
