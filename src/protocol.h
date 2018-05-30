@@ -7,7 +7,7 @@
 #include "connection.h"
 
 class protocol {
-private:
+protected:
 	connection* cons;
 	CryptoPP::CTR_Mode<CryptoPP::AES>::Encryption* prgs;
 public:

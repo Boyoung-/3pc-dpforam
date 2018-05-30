@@ -8,6 +8,12 @@ public:
 	ssot(const char* party, connection* cons,
 			CryptoPP::CTR_Mode<CryptoPP::AES>::Encryption* prgs);
 
+	char* runE(int b1, char* v01[2], int mBytes);
+
+	void runD(int mBytes);
+
+	char* runC(int b0, char* u01[2], int mBytes);
+
 	void test();
 };
 
