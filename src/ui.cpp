@@ -1,10 +1,14 @@
+#include <cryptopp/aes.h>
+#include <cryptopp/modes.h>
 #include <iostream>
 #include <string.h>
 
 #include "connection.h"
 #include "simple_socket.h"
+#include "ssot.h"
 
 using namespace std;
+using namespace CryptoPP;
 
 int main(int argc, const char* argv[]) {
 	if (argc != 2) {
@@ -14,9 +18,19 @@ int main(int argc, const char* argv[]) {
 
 	int port = 8000;
 	const char* host = "127.0.0.1";
+
 	connection* cons[2];
 	cons[0] = new simple_socket();
 	cons[1] = new simple_socket();
+
+	unsigned char bytes[96];
+	for (int i=0; i<96; i++){
+		bytes[i] = i;
+	}
+	int offset_DE = 0;
+	int offset_CE = 32;
+	int offset_CD = 64;
+	CTR_Mode<AES>::Encryption prgs[2];
 
 	if (strcmp(argv[1], "eddie") == 0) {
 		cout << "Establishing connection with debbie... " << flush;
@@ -27,6 +41,9 @@ int main(int argc, const char* argv[]) {
 		cons[1]->init_server(port + 1);
 		cout << "done" << endl;
 
+		prgs[0].SetKeyWithIV(bytes+offset_DE, 16, bytes+offset_DE+16);
+		prgs[1].SetKeyWithIV(bytes+offset_CE, 16, bytes+offset_CE+16);
+
 	} else if (strcmp(argv[1], "debbie") == 0) {
 		cout << "Connecting with eddie... " << flush;
 		cons[1]->init_client(host, port);
@@ -35,6 +52,9 @@ int main(int argc, const char* argv[]) {
 		cout << "Establishing connection with charlie... " << flush;
 		cons[0]->init_server(port + 2);
 		cout << "done" << endl;
+
+		prgs[0].SetKeyWithIV(bytes+offset_CD, 16, bytes+offset_CD+16);
+		prgs[1].SetKeyWithIV(bytes+offset_DE, 16, bytes+offset_DE+16);
 
 	} else if (strcmp(argv[1], "charlie") == 0) {
 		cout << "Connecting with eddie... " << flush;
@@ -45,9 +65,15 @@ int main(int argc, const char* argv[]) {
 		cons[1]->init_client(host, port + 2);
 		cout << "done" << endl;
 
+		prgs[0].SetKeyWithIV(bytes+offset_CE, 16, bytes+offset_CE+16);
+		prgs[1].SetKeyWithIV(bytes+offset_CD, 16, bytes+offset_CD+16);
+
 	} else {
 		cout << "Incorrect party: " << argv[1] << endl;
 	}
+
+	ssot test_ssot(cons, prgs);
+	test_ssot.test();
 
 	cout << "Closing connections... " << flush;
 	cons[0]->close();

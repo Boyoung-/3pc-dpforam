@@ -1,14 +1,14 @@
 #ifndef SSOT_H_
 #define SSOT_H_
 
-#include <cryptopp/randpool.h>
+#include "protocol.h"
 
-#include "connection.h"
+class ssot: public protocol {
+public:
+	ssot(connection* cons[],
+			CryptoPP::CTR_Mode<CryptoPP::AES>::Encryption* prgs[]);
 
-class ssot {
-private:
-	connection* cons[2];
-	CryptoPP::RandomPool* rnds[2];
+	void test();
 };
 
 #endif /* SSOT_H_ */
