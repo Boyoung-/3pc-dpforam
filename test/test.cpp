@@ -9,6 +9,23 @@
 using namespace std;
 using namespace CryptoPP;
 
+class parent {
+public:
+	virtual ~parent(){}
+	virtual void print() = 0;
+};
+
+class ttt : public parent{
+public:
+//	ttt() {
+//		cout << "construct ttt" << endl;
+//	}
+
+	void print() {
+
+	}
+};
+
 int main() {
 	cout << "test" << endl;
 
@@ -41,6 +58,10 @@ int main() {
 	//prng1.GenerateWord32()
 
 	cout << "compare " << memcmp(block1, block2, 100) << endl;
+
+	parent* tt = new ttt[2];
+	tt[0].print();
+	tt[1].print();
 
 	return 0;
 }

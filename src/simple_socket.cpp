@@ -56,10 +56,6 @@ void simple_socket::init_client(const char* ip, int port) {
 	}
 }
 
-void simple_socket::close() {
-	::close(socket_fd);
-}
-
 void simple_socket::write(const char* data, long bytes) {
 	::write(socket_fd, &bytes, sizeof(bytes));
 	::write(socket_fd, data, bytes);
@@ -84,4 +80,8 @@ long simple_socket::read(char* &data) {
 		offset += read_bytes;
 	}
 	return bytes;
+}
+
+void simple_socket::close() {
+	::close(socket_fd);
 }

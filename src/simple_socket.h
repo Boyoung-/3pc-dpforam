@@ -9,9 +9,9 @@ private:
 public:
 	void init_server(int port);
 	void init_client(const char* ip, int port);
-	void close();
 	void write(const char* data, long bytes);
 	long read(char* &data);
+	void close();
 };
 
 #endif /* SIMPLE_SOCKET_H_ */

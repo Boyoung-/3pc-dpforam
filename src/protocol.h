@@ -8,10 +8,14 @@
 
 class protocol {
 private:
-	connection* cons[];
-	CryptoPP::CTR_Mode<CryptoPP::AES>::Encryption* prgs[];
+	connection* cons;
+	CryptoPP::CTR_Mode<CryptoPP::AES>::Encryption* prgs;
 public:
-	protocol(connection* cons[], CryptoPP::CTR_Mode<CryptoPP::AES>::Encryption* prgs[]) {
+	const char* party;
+
+	protocol(const char* party, connection* cons,
+			CryptoPP::CTR_Mode<CryptoPP::AES>::Encryption* prgs) {
+		this->party = party;
 		this->cons = cons;
 		this->prgs = prgs;
 	}
