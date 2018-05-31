@@ -10,7 +10,9 @@ public:
 	void init_server(int port);
 	void init_client(const char* ip, int port);
 	void write(const char* data, long bytes);
-	long read(char* &data);
+	void read(char* data, long bytes);
+	void write_int(int data);
+	int read_int();
 	void close();
 };
 

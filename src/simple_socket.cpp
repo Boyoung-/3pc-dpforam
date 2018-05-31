@@ -1,14 +1,14 @@
 #include <arpa/inet.h>
 #include <cstring>
 #include <netinet/in.h>
+#include <netinet/tcp.h>
 #include <stdio.h>
 #include <stdlib.h>
 #include <sys/socket.h>
 #include <unistd.h>
 
 #include "simple_socket.h"
-
-#define BUFFER_BYTES 4096
+#include "util.h"
 
 void error(const char* msg) {
 	perror(msg);
@@ -21,9 +21,14 @@ void simple_socket::init_server(int port) {
 		error("init_server: socket failed");
 	}
 	int opt = 1;
-	if (setsockopt(server_fd, SOL_SOCKET, SO_REUSEADDR | SO_REUSEPORT, &opt,
-			sizeof(opt))) {
+	if (setsockopt(server_fd, SOL_SOCKET, SO_REUSEADDR, &opt, sizeof(opt))
+			< 0) {
 		error("init_server: setsockopt failed");
+	}
+	opt = 1;
+	if (setsockopt(server_fd, IPPROTO_TCP, TCP_NODELAY, &opt, sizeof(opt))
+			< 0) {
+		error("init_server: TCP_NODELAY failed");
 	}
 	struct sockaddr_in address;
 	address.sin_family = AF_INET;
@@ -62,11 +67,10 @@ void simple_socket::init_client(const char* ip, int port) {
 }
 
 void simple_socket::write(const char* data, long bytes) {
-	::write(socket_fd, &bytes, sizeof(bytes));
 	int write_bytes;
 	long offset = 0L;
 	while (offset < bytes) {
-		write_bytes = ::write(socket_fd, data + offset, BUFFER_BYTES);
+		write_bytes = ::write(socket_fd, data + offset, bytes - offset);
 		if (write_bytes < 0) {
 			error("write failed");
 		}
@@ -74,25 +78,28 @@ void simple_socket::write(const char* data, long bytes) {
 	}
 }
 
-long simple_socket::read(char* &data) {
-	if (data != NULL) {
-		delete data;
-	}
-	long bytes;
-	::read(socket_fd, &bytes, sizeof(bytes));
-	data = new char[bytes];
-	char buffer[BUFFER_BYTES];
+void simple_socket::read(char* data, long bytes) {
 	int read_bytes;
 	long offset = 0L;
 	while (offset < bytes) {
-		read_bytes = ::read(socket_fd, buffer, BUFFER_BYTES);
+		read_bytes = ::read(socket_fd, data + offset, bytes - offset);
 		if (read_bytes < 0) {
 			error("read failed");
 		}
-		memcpy(data + offset, buffer, read_bytes);
 		offset += read_bytes;
 	}
-	return bytes;
+}
+
+void simple_socket::write_int(int n) {
+	char b[4];
+	int_to_bytes(n, b);
+	write(b, 4);
+}
+
+int simple_socket::read_int() {
+	char b[4];
+	read(b, 4);
+	return bytes_to_int(b);
 }
 
 void simple_socket::close() {

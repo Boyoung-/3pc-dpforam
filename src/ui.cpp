@@ -2,6 +2,7 @@
 #include <cryptopp/modes.h>
 #include <iostream>
 #include <string.h>
+#include <unistd.h>
 
 #include "connection.h"
 #include "simple_socket.h"
@@ -71,7 +72,11 @@ int main(int argc, const char* argv[]) {
 	}
 
 	ssot test_ssot(party, cons, prgs);
+	test_ssot.sync();
 	test_ssot.test();
+	test_ssot.sync();
+
+	sleep(1);
 
 	cout << "Closing connections... " << flush;
 	cons[0]->close();

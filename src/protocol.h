@@ -14,11 +14,9 @@ public:
 	const char* party;
 
 	protocol(const char* party, connection* cons[2],
-			CryptoPP::CTR_Mode<CryptoPP::AES>::Encryption* prgs) {
-		this->party = party;
-		this->cons = cons;
-		this->prgs = prgs;
-	}
+			CryptoPP::CTR_Mode<CryptoPP::AES>::Encryption* prgs);
+
+	void sync();
 };
 
 #endif /* PROTOCOL_H_ */
