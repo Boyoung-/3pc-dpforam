@@ -5,6 +5,7 @@
 #include <unistd.h>
 
 #include "connection.h"
+#include "inslbl.h"
 #include "protocol.h"
 #include "simple_socket.h"
 #include "ssot.h"
@@ -81,6 +82,8 @@ int main(int argc, const char* argv[]) {
 	protocol* test_proto = NULL;
 	if (strcmp(proto, "ssot") == 0) {
 		test_proto = new ssot(party, cons, &rnd, prgs);
+	} else if (strcmp(proto, "inslbl") == 0) {
+		test_proto = new inslbl(party, cons, &rnd, prgs);
 	} else {
 		cerr << "Incorrect protocol: " << proto << endl;
 	}

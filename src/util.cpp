@@ -1,6 +1,6 @@
 #include "util.h"
 
-void cal_xor(const char* a, const char* b, char* c, int bytes) {
+void cal_xor(const char* a, const char* b, int bytes, char* c) {
 	for (int i = 0; i < bytes; i++) {
 		c[i] = (char) (a[i] ^ b[i]);
 	}

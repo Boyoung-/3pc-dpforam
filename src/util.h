@@ -1,7 +1,7 @@
 #ifndef UTIL_H_
 #define UTIL_H_
 
-void cal_xor(const char* a, const char* b, char* c, int bytes);
+void cal_xor(const char* a, const char* b, int bytes, char* c);
 
 void int_to_bytes(int n, char* b);
 
