@@ -11,8 +11,6 @@ public:
 	void init_client(const char* ip, int port);
 	void write(const char* data, long bytes);
 	void read(char* data, long bytes);
-	void write_int(int data);
-	int read_int();
 	void close();
 };
 

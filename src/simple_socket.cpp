@@ -8,7 +8,6 @@
 #include <unistd.h>
 
 #include "simple_socket.h"
-#include "util.h"
 
 void error(const char* msg) {
 	perror(msg);
@@ -88,18 +87,6 @@ void simple_socket::read(char* data, long bytes) {
 		}
 		offset += read_bytes;
 	}
-}
-
-void simple_socket::write_int(int n) {
-	char b[4];
-	int_to_bytes(n, b);
-	write(b, 4);
-}
-
-int simple_socket::read_int() {
-	char b[4];
-	read(b, 4);
-	return bytes_to_int(b);
 }
 
 void simple_socket::close() {

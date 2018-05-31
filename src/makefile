@@ -4,13 +4,16 @@ LIBS=-lcryptopp
 
 all: ui
 
-ui: protocol.o simple_socket.o ssot.o ui.o util.o
-	g++ -o ui protocol.o simple_socket.o ssot.o ui.o util.o $(LIBPATH) $(LIBS)
+ui: connection.o protocol.o simple_socket.o ssot.o ui.o util.o
+	g++ -o ui connection.o protocol.o simple_socket.o ssot.o ui.o util.o $(LIBPATH) $(LIBS)
+	
+connection.o: connection.h util.h connection.cpp
+	g++ $(FLAGS) -c connection.cpp
 	
 protocol.o: protocol.h protocol.cpp
 	g++ $(FLAGS) -c protocol.cpp
 	
-simple_socket.o: simple_socket.h util.h simple_socket.cpp
+simple_socket.o: simple_socket.h simple_socket.cpp
 	g++ $(FLAGS) -c simple_socket.cpp
 	
 ssot.o: ssot.h util.h ssot.cpp

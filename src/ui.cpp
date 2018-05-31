@@ -22,6 +22,7 @@ int main(int argc, const char* argv[]) {
 	int port = 8000;
 
 	connection* cons[2] = { new simple_socket(), new simple_socket() };
+	AutoSeededRandomPool rnd;
 	CTR_Mode<AES>::Encryption prgs[2];
 	unsigned char bytes[96];
 	for (int i = 0; i < 96; i++) {
@@ -71,14 +72,13 @@ int main(int argc, const char* argv[]) {
 		cout << "Incorrect party: " << party << endl;
 	}
 
-	ssot test_ssot(party, cons, prgs);
+	ssot test_ssot(party, cons, &rnd, prgs);
 	test_ssot.sync();
 	test_ssot.test();
 	test_ssot.sync();
 
-	sleep(1);
-
 	cout << "Closing connections... " << flush;
+	sleep(1);
 	cons[0]->close();
 	cons[1]->close();
 	delete cons[0];
