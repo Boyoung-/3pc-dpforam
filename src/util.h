@@ -3,5 +3,4 @@
 
 char* get_xor(const char* a, const char* b, int bytes);
 
-
 #endif /* UTIL_H_ */

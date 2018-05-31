@@ -20,6 +20,11 @@ void simple_socket::init_server(int port) {
 	if (server_fd < 0) {
 		error("init_server: socket failed");
 	}
+	int opt = 1;
+	if (setsockopt(server_fd, SOL_SOCKET, SO_REUSEADDR | SO_REUSEPORT, &opt,
+			sizeof(opt))) {
+		error("init_server: setsockopt failed");
+	}
 	struct sockaddr_in address;
 	address.sin_family = AF_INET;
 	address.sin_addr.s_addr = INADDR_ANY;
@@ -58,7 +63,15 @@ void simple_socket::init_client(const char* ip, int port) {
 
 void simple_socket::write(const char* data, long bytes) {
 	::write(socket_fd, &bytes, sizeof(bytes));
-	::write(socket_fd, data, bytes);
+	int write_bytes;
+	long offset = 0L;
+	while (offset < bytes) {
+		write_bytes = ::write(socket_fd, data + offset, BUFFER_BYTES);
+		if (write_bytes < 0) {
+			error("write failed");
+		}
+		offset += write_bytes;
+	}
 }
 
 long simple_socket::read(char* &data) {

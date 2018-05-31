@@ -5,7 +5,7 @@
 
 class ssot: public protocol {
 public:
-	ssot(const char* party, connection* cons,
+	ssot(const char* party, connection* cons[2],
 			CryptoPP::CTR_Mode<CryptoPP::AES>::Encryption* prgs);
 
 	char* runE(int b1, char* v01[2], int mBytes);

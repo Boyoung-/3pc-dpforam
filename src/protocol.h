@@ -8,12 +8,12 @@
 
 class protocol {
 protected:
-	connection* cons;
+	connection** cons;
 	CryptoPP::CTR_Mode<CryptoPP::AES>::Encryption* prgs;
 public:
 	const char* party;
 
-	protocol(const char* party, connection* cons,
+	protocol(const char* party, connection* cons[2],
 			CryptoPP::CTR_Mode<CryptoPP::AES>::Encryption* prgs) {
 		this->party = party;
 		this->cons = cons;
