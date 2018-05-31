@@ -5,6 +5,7 @@
 #include <unistd.h>
 
 #include "connection.h"
+#include "protocol.h"
 #include "simple_socket.h"
 #include "ssot.h"
 
@@ -12,12 +13,14 @@ using namespace std;
 using namespace CryptoPP;
 
 int main(int argc, const char* argv[]) {
-	if (argc != 2) {
-		cout << "Usage: ui [party]" << endl;
+	if (argc != 3) {
+		cout << "Usage: ui [party] [protocol]" << endl;
 		return 0;
 	}
 
 	const char* party = argv[1];
+	const char* proto = argv[2];
+
 	const char* host = "127.0.0.1";
 	int port = 8000;
 
@@ -69,13 +72,25 @@ int main(int argc, const char* argv[]) {
 		prgs[1].SetKeyWithIV(bytes + offset_CD, 16, bytes + offset_CD + 16);
 
 	} else {
-		cout << "Incorrect party: " << party << endl;
+		cerr << "Incorrect party: " << party << endl;
+		delete cons[0];
+		delete cons[1];
+		return 0;
 	}
 
-	ssot test_ssot(party, cons, &rnd, prgs);
-	test_ssot.sync();
-	test_ssot.test();
-	test_ssot.sync();
+	protocol* test_proto = NULL;
+	if (strcmp(proto, "ssot") == 0) {
+		test_proto = new ssot(party, cons, &rnd, prgs);
+	} else {
+		cerr << "Incorrect protocol: " << proto << endl;
+	}
+
+	if (test_proto != NULL) {
+		test_proto->sync();
+		test_proto->test();
+		test_proto->sync();
+		delete test_proto;
+	}
 
 	cout << "Closing connections... " << flush;
 	sleep(1);

@@ -19,7 +19,7 @@ simple_socket.o: simple_socket.h simple_socket.cpp
 ssot.o: ssot.h util.h ssot.cpp
 	g++ $(FLAGS) -c ssot.cpp
 
-ui.o: connection.h simple_socket.h ssot.h ui.cpp
+ui.o: connection.h protocol.h simple_socket.h ssot.h ui.cpp
 	g++ $(FLAGS) -c ui.cpp
 	
 util.o: util.h util.cpp

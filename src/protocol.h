@@ -18,8 +18,10 @@ public:
 	protocol(const char* party, connection* cons[2],
 			CryptoPP::AutoSeededRandomPool* rnd,
 			CryptoPP::CTR_Mode<CryptoPP::AES>::Encryption* prgs);
+	virtual ~protocol();
 
 	void sync();
+	virtual void test();
 };
 
 #endif /* PROTOCOL_H_ */
