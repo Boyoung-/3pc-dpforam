@@ -1,8 +1,8 @@
 FLAGS=-g -Wall
 LIBPATH=-L"../lib"
-LIBS=-lcryptopp
+LIBS=-lcryptopp -lcrypto
 
-all: ui
+all: ui test
 
 ui: connection.o inslbl.o protocol.o simple_socket.o ssot.o ui.o util.o
 	g++ -o ui connection.o inslbl.o protocol.o simple_socket.o ssot.o ui.o util.o $(LIBPATH) $(LIBS)
@@ -12,6 +12,9 @@ connection.o: connection.h util.h connection.cpp
 	
 inslbl.o: inslbl.h util.h inslbl.cpp
 	g++ $(FLAGS) -c inslbl.cpp
+	
+prg256.o: prg256.h prg256.cpp
+	g++ $(FLAGS) -c prg256.cpp
 	
 protocol.o: protocol.h protocol.cpp
 	g++ $(FLAGS) -c protocol.cpp
@@ -29,4 +32,10 @@ util.o: util.h util.cpp
 	g++ $(FLAGS) -c util.cpp
 	
 clean:
-	rm -rf *.o ui
+	rm -rf *.o ui test
+	
+test: prg256.o test.o
+	g++ -o test prg256.o test.o $(LIBPATH) $(LIBS)
+	
+test.o: prg256.h test.cpp
+	g++ $(FLAGS) -c test.cpp
