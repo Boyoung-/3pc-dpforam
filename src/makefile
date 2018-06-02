@@ -10,6 +10,9 @@ ui: connection.o inslbl.o protocol.o simple_socket.o ssot.o ui.o util.o
 connection.o: connection.h util.h connection.cpp
 	g++ $(FLAGS) -c connection.cpp
 	
+fss.o: fss.h util.h fss.cpp
+	g++ $(FLAGS) -c fss.cpp
+	
 inslbl.o: inslbl.h util.h inslbl.cpp
 	g++ $(FLAGS) -c inslbl.cpp
 	
@@ -34,8 +37,8 @@ util.o: util.h util.cpp
 clean:
 	rm -rf *.o ui test
 	
-test: prg256.o test.o
-	g++ -o test prg256.o test.o $(LIBPATH) $(LIBS)
+test: fss.o prg256.o test.o util.o
+	g++ -o test fss.o prg256.o test.o util.o $(LIBPATH) $(LIBS)
 	
-test.o: prg256.h test.cpp
+test.o: fss.h test.cpp
 	g++ $(FLAGS) -c test.cpp
