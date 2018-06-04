@@ -29,6 +29,7 @@ private:
 	prg256 prg;
 public:
 	void gen(long alpha, int m, fsskey keys[2]);
+	void eval_all(const fsskey &key, int m, char* out, long out_size);
 };
 
 void test_fss();
