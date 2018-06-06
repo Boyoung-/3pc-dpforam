@@ -12,7 +12,7 @@ FILE(GLOB src
   )
 
 ADD_EXECUTABLE(libdpf_test ${libdpf} test/libdpf_test.cpp)
-TARGET_COMPILE_OPTIONS(libdpf_test PUBLIC -fkeep-inline-functions -maes)
+TARGET_COMPILE_OPTIONS(libdpf_test PUBLIC -g -Wall -fkeep-inline-functions -maes)
 TARGET_LINK_LIBRARIES(libdpf_test crypto)
 
 ADD_EXECUTABLE(fss_test ${libdpf} fss.h fss.cpp util.h util.cpp test/fss_test.cpp)

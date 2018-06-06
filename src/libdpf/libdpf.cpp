@@ -46,11 +46,11 @@ void PRG(AES_KEY *key, block input, block* output1, block* output2, int* bit1,
 	*output2 = dpf_set_lsb_zero(stash[1]);
 }
 
-static int getbit(int x, int n, int b) {
-	return ((unsigned int) (x) >> (n - b)) & 1;
+static int getbit(long x, int n, int b) {
+	return (x >> (n - b)) & 1;
 }
 
-void GEN(AES_KEY *key, int alpha, int n, unsigned char** k0,
+void GEN(AES_KEY *key, long alpha, int n, unsigned char** k0,
 		unsigned char **k1) {
 	int maxlayer = max(n - 7, 0);
 	//int maxlayer = n;
@@ -170,7 +170,7 @@ void GEN(AES_KEY *key, int alpha, int n, unsigned char** k0,
 	*k1 = buff1;
 }
 
-block EVAL(AES_KEY *key, unsigned char* k, int x) {
+block EVAL(AES_KEY *key, unsigned char* k, long x) {
 	int n = k[0];
 	int maxlayer = max(n - 7, 0);
 
@@ -230,7 +230,7 @@ block EVAL(AES_KEY *key, unsigned char* k, int x) {
 block* EVALFULL(AES_KEY *key, const unsigned char* k) {
 	int n = k[0];
 	int maxlayer = max(n - 7, 0);
-	int maxlayeritem = 1 << maxlayer;
+	long maxlayeritem = 1 << maxlayer;
 
 	block s[2][maxlayeritem];
 	int t[2][maxlayeritem];
@@ -244,7 +244,8 @@ block* EVALFULL(AES_KEY *key, const unsigned char* k) {
 	memcpy(&s[0][0], &k[1], 16);
 	t[0][0] = k[17];
 
-	int i, j;
+	int i;
+	long j;
 	for (i = 1; i <= maxlayer; i++) {
 		memcpy(&sCW[i - 1], &k[18 * i], 16);
 		tCW[i - 1][0] = k[18 * i + 16];
@@ -256,7 +257,7 @@ block* EVALFULL(AES_KEY *key, const unsigned char* k) {
 	block sL, sR;
 	int tL, tR;
 	for (i = 1; i <= maxlayer; i++) {
-		int itemnumber = 1 << (i - 1);
+		long itemnumber = 1 << (i - 1);
 		for (j = 0; j < itemnumber; j++) {
 			PRG(key, s[1 - curlayer][j], &sL, &sR, &tL, &tR);
 
@@ -275,7 +276,7 @@ block* EVALFULL(AES_KEY *key, const unsigned char* k) {
 		curlayer = 1 - curlayer;
 	}
 
-	int itemnumber = 1 << maxlayer;
+	long itemnumber = 1 << maxlayer;
 	block *res = (block*) malloc(sizeof(block) * itemnumber);
 
 	for (j = 0; j < itemnumber; j++) {
@@ -291,4 +292,48 @@ block* EVALFULL(AES_KEY *key, const unsigned char* k) {
 	}
 
 	return res;
+}
+
+void test_libdpf() {
+	long long userkey1 = 597349;
+	long long userkey2 = 121379;
+	block userkey = dpf_make_block(userkey1, userkey2);
+
+	dpf_seed(NULL);
+
+	AES_KEY key;
+	AES_set_encrypt_key(userkey, &key);
+
+	unsigned char *k0;
+	unsigned char *k1;
+
+	GEN(&key, 1, 1, &k0, &k1);
+
+	block res1;
+	block res2;
+
+	res1 = EVAL(&key, k0, 0);
+	res2 = EVAL(&key, k1, 0);
+	dpf_cb(res1);
+	dpf_cb(res2);
+	dpf_cb(dpf_xor(res1, res2));
+
+	res1 = EVAL(&key, k0, 128);
+	res2 = EVAL(&key, k1, 128);
+	dpf_cb(res1);
+	dpf_cb(res2);
+	dpf_cb(dpf_xor(res1, res2));
+
+	block *resf0, *resf1;
+	resf0 = EVALFULL(&key, k0);
+	resf1 = EVALFULL(&key, k1);
+
+	long j;
+	for (j = 0; j < 1; j++) {
+		printf("Group %ld\n", j);
+
+		dpf_cb(resf0[j]);
+		dpf_cb(resf1[j]);
+		dpf_cb(dpf_xor(resf0[j], resf1[j]));
+	}
 }

@@ -28,10 +28,8 @@ fss1bit::fss1bit() {
 	AES_set_encrypt_key(userkey, &aes_key);
 }
 
-// TODO: change alpha of GEN to be long
 void fss1bit::gen(long alpha, int m, char* keys[2]) {
-	GEN(&aes_key, (int) alpha, m, (unsigned char**) keys,
-			(unsigned char**) keys + 1);
+	GEN(&aes_key, alpha, m, (unsigned char**) keys, (unsigned char**) keys + 1);
 }
 
 // TODO: make use of out_size
