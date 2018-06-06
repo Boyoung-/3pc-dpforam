@@ -16,7 +16,7 @@ void to_bit_vector(uint64_t input, char* output) {
 void to_bit_vector(block input, char* output) {
 	uint64_t *val = (uint64_t *) &input;
 	to_bit_vector(val[0], output);
-	to_bit_vector(val[0], output + 64);
+	to_bit_vector(val[1], output + 64);
 }
 
 fss1bit::fss1bit() {
@@ -42,10 +42,13 @@ void fss1bit::eval_all(const char* key, int m, char* out, long out_size) {
 	for (long i = 0; i < groups; i++) {
 		to_bit_vector(res[i], out + i * 128);
 	}
+	free(res);
 }
 
-// TODO: debug m >= 7
 void test_fss() {
+	fss1bit generator;
+	fss1bit evaluators[2];
+
 	for (int m = 1; m <= 20; m++) {
 		long range = (long) pow(2, m);
 
@@ -54,15 +57,13 @@ void test_fss() {
 
 			long alpha = rand_long(range);
 
-			fss1bit generator;
 			char* keys[2];
 			generator.gen(alpha, m, keys);
 
-			fss1bit evaluator;
 			char share0[std::max(range, 128L)];
 			char share1[std::max(range, 128L)];
-			evaluator.eval_all(keys[0], m, share0, std::max(range, 128L));
-			evaluator.eval_all(keys[1], m, share1, std::max(range, 128L));
+			evaluators[0].eval_all(keys[0], m, share0, std::max(range, 128L));
+			evaluators[1].eval_all(keys[1], m, share1, std::max(range, 128L));
 
 			for (long x = 0; x < range; x++) {
 				int output = share0[x] ^ share1[x];
@@ -88,6 +89,9 @@ void test_fss() {
 			else
 				std::cout << "m=" << m << ", i=" << i << ": failed"
 						<< std::endl;
+
+			free(keys[0]);
+			free(keys[1]);
 		}
 		std::cout << std::endl;
 	}
