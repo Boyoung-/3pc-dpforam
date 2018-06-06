@@ -15,7 +15,7 @@ using namespace CryptoPP;
 
 int main(int argc, const char* argv[]) {
 	if (argc != 3) {
-		cout << "Usage: ui [party] [protocol]" << endl;
+		cout << "Usage: dpforam [party] [protocol]" << endl;
 		return 0;
 	}
 
