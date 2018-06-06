@@ -232,8 +232,14 @@ block* EVALFULL(AES_KEY *key, const unsigned char* k) {
 	int maxlayer = max(n - 7, 0);
 	long maxlayeritem = 1 << maxlayer;
 
-	block s[2][maxlayeritem];
-	int t[2][maxlayeritem];
+	//block s[2][maxlayeritem];
+	//int t[2][maxlayeritem];
+	block* s[2];
+	int* t[2];
+	for (int ii = 0; ii < 2; ii++) {
+		s[ii] = new block[maxlayeritem];
+		t[ii] = new int[maxlayeritem];
+	}
 
 	int curlayer = 1;
 
@@ -289,6 +295,11 @@ block* EVALFULL(AES_KEY *key, const unsigned char* k) {
 		if (t[1 - curlayer][j] == 1) {
 			res[j] = dpf_xor(res[j], finalblock);
 		}
+	}
+
+	for (int ii = 0; ii < 2; ii++) {
+		delete[] s[ii];
+		delete[] t[ii];
 	}
 
 	return res;

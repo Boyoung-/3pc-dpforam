@@ -69,8 +69,8 @@ void test_fss() {
 			char* keys[2];
 			generator.gen(alpha, m, keys);
 
-			char share0[range];
-			char share1[range];
+			char* share0 = new char[range];
+			char* share1 = new char[range];
 			evaluators[0].eval_all(keys[0], m, share0);
 			evaluators[1].eval_all(keys[1], m, share1);
 
@@ -101,6 +101,8 @@ void test_fss() {
 
 			free(keys[0]);
 			free(keys[1]);
+			delete[] share0;
+			delete[] share1;
 		}
 		std::cout << std::endl;
 	}
