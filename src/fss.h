@@ -9,7 +9,7 @@ private:
 public:
 	fss1bit();
 	void gen(long alpha, int m, char* keys[2]);
-	void eval_all(const char* key, int m, char* out, long out_size);
+	void eval_all(const char* key, int m, char* out);
 };
 
 void test_fss();

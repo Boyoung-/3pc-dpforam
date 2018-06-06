@@ -1,16 +1,24 @@
 #include <algorithm>
 #include <iostream>
-#include <math.h>
 #include <stdint.h>
 
 #include "fss.h"
 #include "util.h"
 
-void to_bit_vector(uint64_t input, char* output) {
-	for (int i = 0; i < 64; i++) {
+void to_bit_vector(uint64_t input, char* output, int size) {
+	for (int i = 0; i < size; i++) {
 		output[i] = input & 1;
 		input >>= 1;
 	}
+}
+
+void to_bit_vector(uint64_t input, char* output) {
+	to_bit_vector(input, output, 64);
+}
+
+void to_bit_vector(block input, char* output, int size) {
+	uint64_t *val = (uint64_t *) &input;
+	to_bit_vector(val[0], output, size);
 }
 
 void to_bit_vector(block input, char* output) {
@@ -32,13 +40,16 @@ void fss1bit::gen(long alpha, int m, char* keys[2]) {
 	GEN(&aes_key, alpha, m, (unsigned char**) keys, (unsigned char**) keys + 1);
 }
 
-// TODO: make use of out_size
-void fss1bit::eval_all(const char* key, int m, char* out, long out_size) {
+void fss1bit::eval_all(const char* key, int m, char* out) {
 	block* res = EVALFULL(&aes_key, (const unsigned char*) key);
-	int maxlayer = std::max(m - 7, 0);
-	long groups = (long) pow(2, maxlayer);
-	for (long i = 0; i < groups; i++) {
-		to_bit_vector(res[i], out + i * 128);
+	if (m <= 6) {
+		to_bit_vector(res[0], out, (1 << m));
+	} else {
+		int maxlayer = std::max(m - 7, 0);
+		long groups = 1L << maxlayer;
+		for (long i = 0; i < groups; i++) {
+			to_bit_vector(res[i], out + i * 128);
+		}
 	}
 	free(res);
 }
@@ -48,7 +59,7 @@ void test_fss() {
 	fss1bit evaluators[2];
 
 	for (int m = 1; m <= 20; m++) {
-		long range = (long) pow(2, m);
+		long range = 1L << m;
 
 		for (int i = 0; i < 100; i++) {
 			bool pass = true;
@@ -58,10 +69,10 @@ void test_fss() {
 			char* keys[2];
 			generator.gen(alpha, m, keys);
 
-			char share0[std::max(range, 128L)];
-			char share1[std::max(range, 128L)];
-			evaluators[0].eval_all(keys[0], m, share0, std::max(range, 128L));
-			evaluators[1].eval_all(keys[1], m, share1, std::max(range, 128L));
+			char share0[range];
+			char share1[range];
+			evaluators[0].eval_all(keys[0], m, share0);
+			evaluators[1].eval_all(keys[1], m, share1);
 
 			for (long x = 0; x < range; x++) {
 				int output = share0[x] ^ share1[x];
