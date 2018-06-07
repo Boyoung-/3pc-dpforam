@@ -5,26 +5,26 @@
 #include "fss.h"
 #include "util.h"
 
-void to_bit_vector(uint64_t input, char* output, int size) {
+void to_byte_vector(uint64_t input, char* output, int size) {
 	for (int i = 0; i < size; i++) {
 		output[i] = input & 1;
 		input >>= 1;
 	}
 }
 
-void to_bit_vector(uint64_t input, char* output) {
-	to_bit_vector(input, output, 64);
+void to_byte_vector(uint64_t input, char* output) {
+	to_byte_vector(input, output, 64);
 }
 
-void to_bit_vector(block input, char* output, int size) {
+void to_byte_vector(block input, char* output, int size) {
 	uint64_t *val = (uint64_t *) &input;
-	to_bit_vector(val[0], output, size);
+	to_byte_vector(val[0], output, size);
 }
 
-void to_bit_vector(block input, char* output) {
+void to_byte_vector(block input, char* output) {
 	uint64_t *val = (uint64_t *) &input;
-	to_bit_vector(val[0], output);
-	to_bit_vector(val[1], output + 64);
+	to_byte_vector(val[0], output);
+	to_byte_vector(val[1], output + 64);
 }
 
 fss1bit::fss1bit() {
@@ -43,12 +43,13 @@ void fss1bit::gen(long alpha, int m, char* keys[2]) {
 void fss1bit::eval_all(const char* key, int m, char* out) {
 	block* res = EVALFULL(&aes_key, (const unsigned char*) key);
 	if (m <= 6) {
-		to_bit_vector(res[0], out, (1 << m));
+		to_byte_vector(res[0], out, (1 << m));
 	} else {
 		int maxlayer = std::max(m - 7, 0);
 		long groups = 1L << maxlayer;
+#pragma omp parallel for
 		for (long i = 0; i < groups; i++) {
-			to_bit_vector(res[i], out + i * 128);
+			to_byte_vector(res[i], out + i * 128);
 		}
 	}
 	free(res);

@@ -1,3 +1,4 @@
+#include <omp.h>
 #include <stdio.h>
 #include <string.h>
 
@@ -260,11 +261,14 @@ block* EVALFULL(AES_KEY *key, const unsigned char* k) {
 
 	memcpy(&finalblock, &k[18 * (maxlayer + 1)], 16);
 
-	block sL, sR;
-	int tL, tR;
+	//block sL, sR;
+	//int tL, tR;
 	for (i = 1; i <= maxlayer; i++) {
 		long itemnumber = 1 << (i - 1);
+#pragma omp parallel for
 		for (j = 0; j < itemnumber; j++) {
+			block sL, sR;
+			int tL, tR;
 			PRG(key, s[1 - curlayer][j], &sL, &sR, &tL, &tR);
 
 			if (t[1 - curlayer][j] == 1) {
@@ -285,6 +289,7 @@ block* EVALFULL(AES_KEY *key, const unsigned char* k) {
 	long itemnumber = 1 << maxlayer;
 	block *res = (block*) malloc(sizeof(block) * itemnumber);
 
+#pragma omp parallel for
 	for (j = 0; j < itemnumber; j++) {
 		res[j] = s[1 - curlayer][j];
 
