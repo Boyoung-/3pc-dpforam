@@ -5,6 +5,7 @@
 #include <unistd.h>
 
 #include "connection.h"
+#include "dpforam.h"
 #include "inslbl.h"
 #include "protocol.h"
 #include "simple_socket.h"
@@ -79,11 +80,18 @@ int main(int argc, const char* argv[]) {
 		return 0;
 	}
 
+	int tau = 3;
+	int logN = 9;
+	int DBytes = 4;
+
 	protocol* test_proto = NULL;
 	if (strcmp(proto, "ssot") == 0) {
 		test_proto = new ssot(party, cons, &rnd, prgs);
 	} else if (strcmp(proto, "inslbl") == 0) {
 		test_proto = new inslbl(party, cons, &rnd, prgs);
+	} else if (strcmp(proto, "dpforam") == 0) {
+		test_proto = new dpforam(party, cons, &rnd, prgs, tau, logN, DBytes,
+				true);
 	} else {
 		cerr << "Incorrect protocol: " << proto << endl;
 	}

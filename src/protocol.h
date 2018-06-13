@@ -7,6 +7,7 @@
 
 #include "connection.h"
 
+// TODO: bandwidth
 class protocol {
 protected:
 	connection** cons;
@@ -19,7 +20,6 @@ public:
 			CryptoPP::AutoSeededRandomPool* rnd,
 			CryptoPP::CTR_Mode<CryptoPP::AES>::Encryption* prgs);
 	virtual ~protocol();
-
 	void sync();
 	virtual void test();
 };
