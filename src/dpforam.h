@@ -28,6 +28,7 @@ private:
 	void set_zero(char** mem);
 	void init_mem(char** &mem);
 	void delete_mem(char** mem);
+	int cal_last_tau(int DBytes);
 public:
 	dpforam(const char* party, connection* cons[2],
 			CryptoPP::AutoSeededRandomPool* rnd,

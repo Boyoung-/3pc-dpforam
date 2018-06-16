@@ -81,7 +81,7 @@ int main(int argc, const char* argv[]) {
 	}
 
 	int tau = 3;
-	int logN = 9;
+	int logN = 11;
 	int DBytes = 4;
 
 	protocol* test_proto = NULL;
