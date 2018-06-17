@@ -32,7 +32,12 @@ private:
 	void delete_mem(char** mem);
 	int cal_last_tau(int DBytes);
 	void block_pir(const long addr_with_flag_23[2],
-			const char* const * const mem_23[2], char* rec_23[2], char* t[2]);
+			const char* const * const mem_23[2], char* block_23[2],
+			char* fss_out[2]);
+	void rec_pir(const int idx_23[2], const char* const block_23[2],
+			char* rec_23[2]);
+	void gen_delta_array(const int idx_23[2], int numChunk, int chunkBytes,
+			const char* const delta_23[2], char* delta_array_23[2]);
 public:
 	dpforam(const char* party, connection* cons[2],
 			CryptoPP::AutoSeededRandomPool* rnd,

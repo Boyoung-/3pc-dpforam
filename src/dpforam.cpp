@@ -2,6 +2,7 @@
 #include <iostream>
 
 #include "dpforam.h"
+#include "inslbl.h"
 #include "util.h"
 
 fss1bit dpforam::fss;
@@ -65,7 +66,8 @@ int dpforam::cal_last_tau(int DBytes) {
 }
 
 void dpforam::block_pir(const long addr_with_flag_23[2],
-		const char* const * const mem_23[2], char* rec_23[2], char* t[2]) {
+		const char* const * const mem_23[2], char* block_23[2],
+		char* fss_out[2]) {
 	long mask = N - 1;
 	long addr_23[2];
 	addr_23[0] = addr_with_flag_23[0] & mask;
@@ -78,21 +80,79 @@ void dpforam::block_pir(const long addr_with_flag_23[2],
 	cons[0]->read(keys[1], keyBytes);
 	cons[1]->read(keys[0], keyBytes);
 
-	memset(rec_23[0], 0, DBytes);
+	memset(block_23[0], 0, DBytes);
 	for (int i = 0; i < 2; i++) {
-		fss.eval_all_with_shift(keys[0], logN, addr_23[i], t[i]);
+		fss.eval_all_with_shift(keys[i], logN, addr_23[i], fss_out[i]);
 		for (long j = 0; j < N; j++) {
-			if (t[i][j] == 1) {
-				cal_xor(rec_23[0], mem_23[i][j], DBytes, rec_23[0]);
+			if (fss_out[i][j] == 1) {
+				cal_xor(block_23[0], mem_23[i][j], DBytes, block_23[0]);
 			}
 		}
 	}
 
-	cons[0]->write(rec_23[0], DBytes);
-	cons[1]->read(rec_23[1], DBytes);
+	cons[0]->write(block_23[0], DBytes);
+	cons[1]->read(block_23[1], DBytes);
 
 	delete[] keys[0];
 	delete[] keys[1];
+}
+
+void dpforam::rec_pir(const int idx_23[2], const char* const block_23[2],
+		char* rec_23[2]) {
+	char* keys[2];
+	int keyBytes = fss.gen(idx_23[0] ^ idx_23[1], tau, keys);
+	cons[0]->write(keys[0], keyBytes);
+	cons[1]->write(keys[1], keyBytes);
+	cons[0]->read(keys[1], keyBytes);
+	cons[1]->read(keys[0], keyBytes);
+
+	memset(rec_23[0], 0, nextLogNBytes);
+	for (int i = 0; i < 2; i++) {
+		char fss_out[ttp];
+		fss.eval_all(keys[i], tau, fss_out);
+		for (int j = 0; j < ttp; j++) {
+			if (fss_out[j ^ idx_23[i]] == 1) {
+				cal_xor(rec_23[0], block_23[i] + j * nextLogNBytes,
+						nextLogNBytes, rec_23[0]);
+			}
+		}
+	}
+
+	cons[0]->write(rec_23[0], nextLogNBytes);
+	cons[1]->read(rec_23[1], nextLogNBytes);
+
+	delete[] keys[0];
+	delete[] keys[1];
+}
+
+void dpforam::gen_delta_array(const int idx_23[2], int numChunk, int chunkBytes,
+		const char* const delta_23[2], char* delta_array_23[2]) {
+	int arrayBytes = numChunk * chunkBytes;
+	inslbl il(party, cons, rnd, prgs);
+	if (strcmp(party, "eddie") == 0) {
+//		inslbl.runE(idx_23[0] ^ idx_23[1], Util.xor(delta_23[0], delta_23[1]), numChunk);
+//
+//		mem_23[0] = Util.nextBytes(memBytes, Crypto.sr_DE);
+//		mem_23[1] = Util.nextBytes(memBytes, Crypto.sr_CE);
+
+	} else if (strcmp(party, "debbie") == 0) {
+//		byte[] mem_12 = inslbl.runD(idx_23[0], delta_23[0], numChunk);
+//
+//		mem_23[1] = Util.nextBytes(memBytes, Crypto.sr_DE);
+//		mem_23[0] = Util.xor(mem_12, mem_23[1]);
+//		cons[0].write(bandwidth, mem_23[0]);
+//		Util.setXor(mem_23[0], cons[0].read());
+
+	} else if (strcmp(party, "charlie") == 0) {
+//		byte[] mem_12 = inslbl.runC(numChunk, chunkBytes);
+//
+//		mem_23[0] = Util.nextBytes(memBytes, Crypto.sr_CE);
+//		mem_23[1] = Util.xor(mem_12, mem_23[0]);
+//		cons[1].write(bandwidth, mem_23[1]);
+//		Util.setXor(mem_23[1], cons[1].read());
+
+	} else {
+	}
 }
 
 dpforam::dpforam(const char* party, connection* cons[2],
@@ -150,6 +210,35 @@ void dpforam::access(const long addr_23[2], const char* const newRec_23[2],
 		addrPre_23[i] = addr_23[i] >> tau;
 		addrSuf_23[i] = (int) addr_23[i] & mask;
 	}
+
+	char* block_23[2];
+	char* pir_out[2];
+	char* rec_23[2];
+	for (int i = 0; i < 2; i++) {
+		block_23[i] = new char[DBytes];
+		pir_out[i] = new char[N];
+		rec_23[i] = new char[nextLogNBytes];
+	}
+	block_pir(addrPre_23, rom, block_23, pir_out);
+	rec_pir(addrSuf_23, block_23, rec_23);
+
+//	byte[][] deltaPtr_23 = new byte[][] {Util.xor(ptr_23[0], newPtr_23[0]), Util.xor(ptr_23[1], newPtr_23[1])};
+//	// generate delta block
+//	byte[][] deltaBlock_23 = genBlockOrArrayDelta(addrSuf_23, ttp, nextLogNBytes, deltaPtr_23);
+//	// generate delta of whole read memory
+//	byte[][] rom = genBlockOrArrayDelta(new int[] {(int) addrPre_23[0], (int) addrPre_23[1]}, (int) N, DBytes,
+//			deltaBlock_23);
+//
+//	// apply change to read memory
+//	for (int i = 0; i < 2; i++) {
+//		for (long j = 0; j < N; j++) {
+//			Util.setXor(ROM[i].get(j),
+//					Arrays.copyOfRange(rom[i], (int) j * DBytes,
+//							(int) (j + 1) * DBytes));
+//		}
+//	}
+//
+//	return ptr_23;
 }
 
 void dpforam::print_metadata() {
