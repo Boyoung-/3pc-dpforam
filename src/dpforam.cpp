@@ -2,6 +2,9 @@
 #include <iostream>
 
 #include "dpforam.h"
+#include "util.h"
+
+fss1bit dpforam::fss;
 
 void dpforam::init() {
 	init_ctr();
@@ -61,6 +64,37 @@ int dpforam::cal_last_tau(int DBytes) {
 	}
 }
 
+void dpforam::block_pir(const long addr_with_flag_23[2],
+		const char* const * const mem_23[2], char* rec_23[2], char* t[2]) {
+	long mask = N - 1;
+	long addr_23[2];
+	addr_23[0] = addr_with_flag_23[0] & mask;
+	addr_23[1] = addr_with_flag_23[1] & mask;
+
+	char* keys[2];
+	int keyBytes = fss.gen(addr_23[0] ^ addr_23[1], logN, keys);
+	cons[0]->write(keys[0], keyBytes);
+	cons[1]->write(keys[1], keyBytes);
+	cons[0]->read(keys[1], keyBytes);
+	cons[1]->read(keys[0], keyBytes);
+
+	memset(rec_23[0], 0, DBytes);
+	for (int i = 0; i < 2; i++) {
+		fss.eval_all_with_shift(keys[0], logN, addr_23[i], t[i]);
+		for (long j = 0; j < N; j++) {
+			if (t[i][j] == 1) {
+				cal_xor(rec_23[0], mem_23[i][j], DBytes, rec_23[0]);
+			}
+		}
+	}
+
+	cons[0]->write(rec_23[0], DBytes);
+	cons[1]->read(rec_23[1], DBytes);
+
+	delete[] keys[0];
+	delete[] keys[1];
+}
+
 dpforam::dpforam(const char* party, connection* cons[2],
 		CryptoPP::AutoSeededRandomPool* rnd,
 		CryptoPP::CTR_Mode<CryptoPP::AES>::Encryption* prgs, int tau, int logN,
@@ -77,16 +111,13 @@ dpforam::dpforam(const char* party, connection* cons[2],
 	N = 1L << this->logN;
 	isFirst = this->logN - tau < tau;
 
-	rom = new char**[2];
 	init_mem(rom[0]);
 	init_mem(rom[1]);
 	if (isFirst) {
 		wom = NULL;
-		stash = NULL;
 		pos_map = NULL;
 	} else {
 		init_mem(wom);
-		stash = new char**[2];
 		init_mem(stash[0]);
 		init_mem(stash[1]);
 		pos_map = new dpforam(party, cons, rnd, prgs, tau, this->logN - tau, 0,
@@ -104,12 +135,21 @@ dpforam::~dpforam() {
 		delete pos_map;
 		delete_mem(stash[0]);
 		delete_mem(stash[1]);
-		delete[] stash;
 		delete_mem(wom);
 	}
 	delete_mem(rom[0]);
 	delete_mem(rom[1]);
-	delete[] rom;
+}
+
+void dpforam::access(const long addr_23[2], const char* const newRec_23[2],
+		bool isRead) {
+	int mask = ttp - 1;
+	long addrPre_23[2];
+	int addrSuf_23[2];
+	for (int i = 0; i < 2; i++) {
+		addrPre_23[i] = addr_23[i] >> tau;
+		addrSuf_23[i] = (int) addr_23[i] & mask;
+	}
 }
 
 void dpforam::print_metadata() {

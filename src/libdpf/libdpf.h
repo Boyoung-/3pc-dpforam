@@ -4,7 +4,7 @@
 #include "aes.h"
 #include "block.h"
 
-void GEN(AES_KEY *key, long alpha, int n, unsigned char** k0,
+int GEN(AES_KEY *key, long alpha, int n, unsigned char** k0,
 		unsigned char **k1);
 block EVAL(AES_KEY *key, unsigned char* k, long x);
 block* EVALFULL(AES_KEY *key, const unsigned char* k);

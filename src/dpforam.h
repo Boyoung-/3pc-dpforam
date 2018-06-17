@@ -1,13 +1,15 @@
 #ifndef DPFORAM_H_
 #define DPFORAM_H_
 
+#include "fss.h"
 #include "protocol.h"
 
 class dpforam: public protocol {
 private:
-	char*** rom;
+	static fss1bit fss;
+	char** rom[2];
 	char** wom;
-	char*** stash;
+	char** stash[2];
 	dpforam* pos_map;
 	long stash_ctr;
 public:
@@ -29,12 +31,16 @@ private:
 	void init_mem(char** &mem);
 	void delete_mem(char** mem);
 	int cal_last_tau(int DBytes);
+	void block_pir(const long addr_with_flag_23[2],
+			const char* const * const mem_23[2], char* rec_23[2], char* t[2]);
 public:
 	dpforam(const char* party, connection* cons[2],
 			CryptoPP::AutoSeededRandomPool* rnd,
 			CryptoPP::CTR_Mode<CryptoPP::AES>::Encryption* prgs, int tau,
 			int logN, int DBytes, bool isLast);
 	~dpforam();
+	void access(const long addr_23[2], const char* const newRec_23[2],
+			bool isRead);
 	void print_metadata();
 	void test();
 };

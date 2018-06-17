@@ -36,8 +36,9 @@ fss1bit::fss1bit() {
 	AES_set_encrypt_key(userkey, &aes_key);
 }
 
-void fss1bit::gen(long alpha, int m, char* keys[2]) {
-	GEN(&aes_key, alpha, m, (unsigned char**) keys, (unsigned char**) keys + 1);
+int fss1bit::gen(long alpha, int m, char* keys[2]) {
+	return GEN(&aes_key, alpha, m, (unsigned char**) keys,
+			(unsigned char**) keys + 1);
 }
 
 void fss1bit::eval_all(const char* key, int m, char* out) {
@@ -53,6 +54,19 @@ void fss1bit::eval_all(const char* key, int m, char* out) {
 		}
 	}
 	free(res);
+}
+
+// TODO: make this code more efficient?
+void fss1bit::eval_all_with_shift(const char* key, int m, long shift,
+		char* out) {
+	long range = 1L << m;
+	char* tmp = new char[range];
+	eval_all(key, m, tmp);
+#pragma omp parallel for
+	for (long i = 0; i < range; i++) {
+		out[i] = tmp[i ^ shift];
+	}
+	delete[] tmp;
 }
 
 void test_fss() {

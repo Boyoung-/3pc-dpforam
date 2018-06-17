@@ -51,7 +51,7 @@ static int getbit(long x, int n, int b) {
 	return (x >> (n - b)) & 1;
 }
 
-void GEN(AES_KEY *key, long alpha, int n, unsigned char** k0,
+int GEN(AES_KEY *key, long alpha, int n, unsigned char** k0,
 		unsigned char **k1) {
 	int maxlayer = max(n - 7, 0);
 	//int maxlayer = n;
@@ -143,8 +143,9 @@ void GEN(AES_KEY *key, long alpha, int n, unsigned char** k0,
 
 	unsigned char *buff0;
 	unsigned char *buff1;
-	buff0 = (unsigned char*) malloc(1 + 16 + 1 + 18 * maxlayer + 16);
-	buff1 = (unsigned char*) malloc(1 + 16 + 1 + 18 * maxlayer + 16);
+	int size = 1 + 16 + 1 + 18 * maxlayer + 16;
+	buff0 = (unsigned char*) malloc(size);
+	buff1 = (unsigned char*) malloc(size);
 
 	if (buff0 == NULL || buff1 == NULL) {
 		printf("Memory allocation failed\n");
@@ -169,6 +170,8 @@ void GEN(AES_KEY *key, long alpha, int n, unsigned char** k0,
 
 	*k0 = buff0;
 	*k1 = buff1;
+
+	return size;
 }
 
 block EVAL(AES_KEY *key, unsigned char* k, long x) {
