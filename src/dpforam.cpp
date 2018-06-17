@@ -130,26 +130,32 @@ void dpforam::gen_delta_array(const int idx_23[2], int numChunk, int chunkBytes,
 	int arrayBytes = numChunk * chunkBytes;
 	inslbl il(party, cons, rnd, prgs);
 	if (strcmp(party, "eddie") == 0) {
-//		inslbl.runE(idx_23[0] ^ idx_23[1], Util.xor(delta_23[0], delta_23[1]), numChunk);
-//
-//		mem_23[0] = Util.nextBytes(memBytes, Crypto.sr_DE);
-//		mem_23[1] = Util.nextBytes(memBytes, Crypto.sr_CE);
+		char L1[chunkBytes];
+		cal_xor(delta_23[0], delta_23[1], chunkBytes, L1);
+		il.runE(idx_23[0] ^ idx_23[1], L1, numChunk, chunkBytes);
+		prgs[0].GenerateBlock((unsigned char*) delta_array_23[0], arrayBytes);
+		prgs[1].GenerateBlock((unsigned char*) delta_array_23[1], arrayBytes);
 
 	} else if (strcmp(party, "debbie") == 0) {
-//		byte[] mem_12 = inslbl.runD(idx_23[0], delta_23[0], numChunk);
-//
-//		mem_23[1] = Util.nextBytes(memBytes, Crypto.sr_DE);
-//		mem_23[0] = Util.xor(mem_12, mem_23[1]);
-//		cons[0].write(bandwidth, mem_23[0]);
-//		Util.setXor(mem_23[0], cons[0].read());
+		il.runD(idx_23[0], delta_23[0], numChunk, chunkBytes,
+				delta_array_23[0]);
+		prgs[1].GenerateBlock((unsigned char*) delta_array_23[1], arrayBytes);
+		cal_xor(delta_array_23[0], delta_array_23[1], arrayBytes,
+				delta_array_23[0]);
+		cons[0]->write(delta_array_23[0], arrayBytes);
+		char tmp[arrayBytes];
+		cons[0]->read(tmp, arrayBytes);
+		cal_xor(delta_array_23[0], tmp, arrayBytes, delta_array_23[0]);
 
 	} else if (strcmp(party, "charlie") == 0) {
-//		byte[] mem_12 = inslbl.runC(numChunk, chunkBytes);
-//
-//		mem_23[0] = Util.nextBytes(memBytes, Crypto.sr_CE);
-//		mem_23[1] = Util.xor(mem_12, mem_23[0]);
-//		cons[1].write(bandwidth, mem_23[1]);
-//		Util.setXor(mem_23[1], cons[1].read());
+		il.runC(numChunk, chunkBytes, delta_array_23[1]);
+		prgs[0].GenerateBlock((unsigned char*) delta_array_23[0], arrayBytes);
+		cal_xor(delta_array_23[0], delta_array_23[1], arrayBytes,
+				delta_array_23[1]);
+		cons[1]->write(delta_array_23[1], arrayBytes);
+		char tmp[arrayBytes];
+		cons[1]->read(tmp, arrayBytes);
+		cal_xor(delta_array_23[1], tmp, arrayBytes, delta_array_23[1]);
 
 	} else {
 	}
@@ -202,7 +208,7 @@ dpforam::~dpforam() {
 }
 
 void dpforam::access(const long addr_23[2], const char* const newRec_23[2],
-		bool isRead) {
+		bool isRead, char* rec_23[2]) {
 	int mask = ttp - 1;
 	long addrPre_23[2];
 	int addrSuf_23[2];
@@ -213,32 +219,40 @@ void dpforam::access(const long addr_23[2], const char* const newRec_23[2],
 
 	char* block_23[2];
 	char* pir_out[2];
-	char* rec_23[2];
+	char* delta_rec_23[2];
+	char* delta_block_23[2];
+	char* delta_rom_23[2];
 	for (int i = 0; i < 2; i++) {
 		block_23[i] = new char[DBytes];
 		pir_out[i] = new char[N];
-		rec_23[i] = new char[nextLogNBytes];
+		delta_rec_23[i] = new char[nextLogNBytes];
+		delta_block_23[i] = new char[DBytes];
+		delta_rom_23[i] = new char[N * DBytes];
 	}
 	block_pir(addrPre_23, rom, block_23, pir_out);
 	rec_pir(addrSuf_23, block_23, rec_23);
 
-//	byte[][] deltaPtr_23 = new byte[][] {Util.xor(ptr_23[0], newPtr_23[0]), Util.xor(ptr_23[1], newPtr_23[1])};
-//	// generate delta block
-//	byte[][] deltaBlock_23 = genBlockOrArrayDelta(addrSuf_23, ttp, nextLogNBytes, deltaPtr_23);
-//	// generate delta of whole read memory
-//	byte[][] rom = genBlockOrArrayDelta(new int[] {(int) addrPre_23[0], (int) addrPre_23[1]}, (int) N, DBytes,
-//			deltaBlock_23);
-//
-//	// apply change to read memory
-//	for (int i = 0; i < 2; i++) {
-//		for (long j = 0; j < N; j++) {
-//			Util.setXor(ROM[i].get(j),
-//					Arrays.copyOfRange(rom[i], (int) j * DBytes,
-//							(int) (j + 1) * DBytes));
-//		}
-//	}
-//
-//	return ptr_23;
+	cal_xor(rec_23[0], newRec_23[0], nextLogNBytes, delta_rec_23[0]);
+	cal_xor(rec_23[1], newRec_23[1], nextLogNBytes, delta_rec_23[1]);
+	gen_delta_array(addrSuf_23, ttp, nextLogNBytes, delta_rec_23,
+			delta_block_23);
+	int int_addrPre_23[2] = { (int) addrPre_23[0], (int) addrPre_23[1] };
+	gen_delta_array(int_addrPre_23, (int) N, DBytes, delta_block_23,
+			delta_rom_23);
+
+	for (int i = 0; i < 2; i++) {
+		for (long j = 0; j < N; j++) {
+			cal_xor(rom[i][j], delta_rom_23[i] + j * DBytes, DBytes, rom[i][j]);
+		}
+	}
+
+	for (int i = 0; i < 2; i++) {
+		delete[] block_23[i];
+		delete[] pir_out[i];
+		delete[] delta_rec_23[i];
+		delete[] delta_block_23[i];
+		delete[] delta_rom_23[i];
+	}
 }
 
 void dpforam::print_metadata() {
@@ -268,4 +282,19 @@ void dpforam::print_metadata() {
 
 void dpforam::test() {
 	print_metadata();
+
+	long addr_23[2] = { 0, 0 };
+	char* rec_23[2];
+	char* newRec_23[2];
+	for (int i = 0; i < 2; i++) {
+		rec_23[i] = new char[nextLogNBytes];
+		newRec_23[i] = new char[nextLogNBytes];
+	}
+
+	access(addr_23, newRec_23, true, rec_23);
+
+	for (int i = 0; i < 2; i++) {
+		delete[] rec_23[i];
+		delete[] newRec_23[i];
+	}
 }

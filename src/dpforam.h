@@ -45,7 +45,7 @@ public:
 			int logN, int DBytes, bool isLast);
 	~dpforam();
 	void access(const long addr_23[2], const char* const newRec_23[2],
-			bool isRead);
+			bool isRead, char* rec_23[2]);
 	void print_metadata();
 	void test();
 };
