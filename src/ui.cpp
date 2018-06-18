@@ -29,13 +29,13 @@ int main(int argc, const char* argv[]) {
 	connection* cons[2] = { new simple_socket(), new simple_socket() };
 	AutoSeededRandomPool rnd;
 	CTR_Mode<AES>::Encryption prgs[2];
-	unsigned char bytes[96];
-	for (int i = 0; i < 96; i++) {
+	uchar bytes[96];
+	for (uint i = 0; i < 96; i++) {
 		bytes[i] = i;
 	}
-	int offset_DE = 0;
-	int offset_CE = 32;
-	int offset_CD = 64;
+	uint offset_DE = 0;
+	uint offset_CE = 32;
+	uint offset_CD = 64;
 
 	if (strcmp(party, "eddie") == 0) {
 		cout << "Establishing connection with debbie... " << flush;
@@ -80,9 +80,9 @@ int main(int argc, const char* argv[]) {
 		return 0;
 	}
 
-	int tau = 3;
-	int logN = 11;
-	int DBytes = 4;
+	uint tau = 3;
+	uint logN = 11;
+	uint DBytes = 4;
 
 	protocol* test_proto = NULL;
 	if (strcmp(proto, "ssot") == 0) {

@@ -5,13 +5,13 @@ connection::~connection() {
 }
 
 void connection::write_int(int n) {
-	unsigned char b[4];
+	uchar b[4];
 	int_to_bytes(n, b);
-	write((char*) b, 4);
+	write(b, 4);
 }
 
 int connection::read_int() {
-	unsigned char b[4];
-	read((char*) b, 4);
+	uchar b[4];
+	read(b, 4);
 	return bytes_to_int(b);
 }

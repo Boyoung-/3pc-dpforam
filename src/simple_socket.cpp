@@ -65,9 +65,9 @@ void simple_socket::init_client(const char* ip, int port) {
 	}
 }
 
-void simple_socket::write(const char* data, long bytes) {
-	int write_bytes;
-	long offset = 0L;
+void simple_socket::write(const uchar* data, ulong bytes) {
+	long write_bytes;
+	ulong offset = 0L;
 	while (offset < bytes) {
 		write_bytes = ::write(socket_fd, data + offset, bytes - offset);
 		if (write_bytes < 0) {
@@ -77,9 +77,9 @@ void simple_socket::write(const char* data, long bytes) {
 	}
 }
 
-void simple_socket::read(char* data, long bytes) {
-	int read_bytes;
-	long offset = 0L;
+void simple_socket::read(uchar* data, ulong bytes) {
+	long read_bytes;
+	ulong offset = 0L;
 	while (offset < bytes) {
 		read_bytes = ::read(socket_fd, data + offset, bytes - offset);
 		if (read_bytes < 0) {

@@ -27,31 +27,31 @@ void dpforam::init_ctr() {
 	stash_ctr = 1;
 }
 
-void dpforam::set_zero(char** mem) {
+void dpforam::set_zero(uchar** mem) {
 	if (mem == NULL) {
 		return;
 	}
 
-	for (long i = 0; i < N; i++) {
+	for (ulong i = 0; i < N; i++) {
 		memset(mem[i], 0, DBytes);
 	}
 }
 
-void dpforam::init_mem(char** &mem) {
-	mem = new char*[N];
-	for (long i = 0; i < N; i++) {
-		mem[i] = new char[DBytes];
+void dpforam::init_mem(uchar** &mem) {
+	mem = new uchar*[N];
+	for (ulong i = 0; i < N; i++) {
+		mem[i] = new uchar[DBytes];
 	}
 }
 
-void dpforam::delete_mem(char** mem) {
-	for (long i = 0; i < N; i++) {
+void dpforam::delete_mem(uchar** mem) {
+	for (ulong i = 0; i < N; i++) {
 		delete[] mem[i];
 	}
 	delete[] mem;
 }
 
-int dpforam::cal_last_tau(int DBytes) {
+uint dpforam::cal_last_tau(uint DBytes) {
 	if (DBytes < 2) {
 		return 4;
 	} else if (DBytes < 4) {
@@ -65,25 +65,25 @@ int dpforam::cal_last_tau(int DBytes) {
 	}
 }
 
-void dpforam::block_pir(const long addr_with_flag_23[2],
-		const char* const * const mem_23[2], char* block_23[2],
-		char* fss_out[2]) {
-	long mask = N - 1;
-	long addr_23[2];
+void dpforam::block_pir(const ulong addr_with_flag_23[2],
+		const uchar* const * const mem_23[2], uchar* block_23[2],
+		uchar* fss_out[2]) {
+	ulong mask = N - 1;
+	ulong addr_23[2];
 	addr_23[0] = addr_with_flag_23[0] & mask;
 	addr_23[1] = addr_with_flag_23[1] & mask;
 
-	char* keys[2];
-	int keyBytes = fss.gen(addr_23[0] ^ addr_23[1], logN, keys);
+	uchar* keys[2];
+	uint keyBytes = fss.gen(addr_23[0] ^ addr_23[1], logN, keys);
 	cons[0]->write(keys[0], keyBytes);
 	cons[1]->write(keys[1], keyBytes);
 	cons[0]->read(keys[1], keyBytes);
 	cons[1]->read(keys[0], keyBytes);
 
 	memset(block_23[0], 0, DBytes);
-	for (int i = 0; i < 2; i++) {
+	for (uint i = 0; i < 2; i++) {
 		fss.eval_all_with_shift(keys[i], logN, addr_23[i], fss_out[i]);
-		for (long j = 0; j < N; j++) {
+		for (ulong j = 0; j < N; j++) {
 			if (fss_out[i][j] == 1) {
 				cal_xor(block_23[0], mem_23[i][j], DBytes, block_23[0]);
 			}
@@ -97,20 +97,20 @@ void dpforam::block_pir(const long addr_with_flag_23[2],
 	delete[] keys[1];
 }
 
-void dpforam::rec_pir(const int idx_23[2], const char* const block_23[2],
-		char* rec_23[2]) {
-	char* keys[2];
-	int keyBytes = fss.gen(idx_23[0] ^ idx_23[1], tau, keys);
+void dpforam::rec_pir(const uint idx_23[2], const uchar* const block_23[2],
+		uchar* rec_23[2]) {
+	uchar* keys[2];
+	uint keyBytes = fss.gen(idx_23[0] ^ idx_23[1], tau, keys);
 	cons[0]->write(keys[0], keyBytes);
 	cons[1]->write(keys[1], keyBytes);
 	cons[0]->read(keys[1], keyBytes);
 	cons[1]->read(keys[0], keyBytes);
 
 	memset(rec_23[0], 0, nextLogNBytes);
-	for (int i = 0; i < 2; i++) {
-		char fss_out[ttp];
+	for (uint i = 0; i < 2; i++) {
+		uchar fss_out[ttp];
 		fss.eval_all(keys[i], tau, fss_out);
-		for (int j = 0; j < ttp; j++) {
+		for (uint j = 0; j < ttp; j++) {
 			if (fss_out[j ^ idx_23[i]] == 1) {
 				cal_xor(rec_23[0], block_23[i] + j * nextLogNBytes,
 						nextLogNBytes, rec_23[0]);
@@ -125,35 +125,35 @@ void dpforam::rec_pir(const int idx_23[2], const char* const block_23[2],
 	delete[] keys[1];
 }
 
-void dpforam::gen_delta_array(const int idx_23[2], int numChunk, int chunkBytes,
-		const char* const delta_23[2], char* delta_array_23[2]) {
-	int arrayBytes = numChunk * chunkBytes;
+void dpforam::gen_delta_array(const uint idx_23[2], uint numChunk, uint chunkBytes,
+		const uchar* const delta_23[2], uchar* delta_array_23[2]) {
+	uint arrayBytes = numChunk * chunkBytes;
 	inslbl il(party, cons, rnd, prgs);
 	if (strcmp(party, "eddie") == 0) {
-		char L1[chunkBytes];
+		uchar L1[chunkBytes];
 		cal_xor(delta_23[0], delta_23[1], chunkBytes, L1);
 		il.runE(idx_23[0] ^ idx_23[1], L1, numChunk, chunkBytes);
-		prgs[0].GenerateBlock((unsigned char*) delta_array_23[0], arrayBytes);
-		prgs[1].GenerateBlock((unsigned char*) delta_array_23[1], arrayBytes);
+		prgs[0].GenerateBlock(delta_array_23[0], arrayBytes);
+		prgs[1].GenerateBlock(delta_array_23[1], arrayBytes);
 
 	} else if (strcmp(party, "debbie") == 0) {
 		il.runD(idx_23[0], delta_23[0], numChunk, chunkBytes,
 				delta_array_23[0]);
-		prgs[1].GenerateBlock((unsigned char*) delta_array_23[1], arrayBytes);
+		prgs[1].GenerateBlock(delta_array_23[1], arrayBytes);
 		cal_xor(delta_array_23[0], delta_array_23[1], arrayBytes,
 				delta_array_23[0]);
 		cons[0]->write(delta_array_23[0], arrayBytes);
-		char tmp[arrayBytes];
+		uchar tmp[arrayBytes];
 		cons[0]->read(tmp, arrayBytes);
 		cal_xor(delta_array_23[0], tmp, arrayBytes, delta_array_23[0]);
 
 	} else if (strcmp(party, "charlie") == 0) {
 		il.runC(numChunk, chunkBytes, delta_array_23[1]);
-		prgs[0].GenerateBlock((unsigned char*) delta_array_23[0], arrayBytes);
+		prgs[0].GenerateBlock(delta_array_23[0], arrayBytes);
 		cal_xor(delta_array_23[0], delta_array_23[1], arrayBytes,
 				delta_array_23[1]);
 		cons[1]->write(delta_array_23[1], arrayBytes);
-		char tmp[arrayBytes];
+		uchar tmp[arrayBytes];
 		cons[1]->read(tmp, arrayBytes);
 		cal_xor(delta_array_23[1], tmp, arrayBytes, delta_array_23[1]);
 
@@ -163,8 +163,8 @@ void dpforam::gen_delta_array(const int idx_23[2], int numChunk, int chunkBytes,
 
 dpforam::dpforam(const char* party, connection* cons[2],
 		CryptoPP::AutoSeededRandomPool* rnd,
-		CryptoPP::CTR_Mode<CryptoPP::AES>::Encryption* prgs, int tau, int logN,
-		int DBytes, bool isLast) :
+		CryptoPP::CTR_Mode<CryptoPP::AES>::Encryption* prgs, uint tau, uint logN,
+		uint DBytes, bool isLast) :
 		protocol(party, cons, rnd, prgs) {
 	this->isLast = isLast;
 	this->tau = isLast ? cal_last_tau(DBytes) : tau;
@@ -207,9 +207,9 @@ dpforam::~dpforam() {
 	delete_mem(rom[1]);
 }
 
-bool dpforam::check_sharing(const char* const share_23[2], int len,
-		const char* expect) {
-	char tmp[len];
+bool dpforam::check_sharing(const uchar* const share_23[2], uint len,
+		const uchar* expect) {
+	uchar tmp[len];
 	cons[0]->write(share_23[0], len);
 	cons[1]->read(tmp, len);
 	if (memcmp(tmp, share_23[1], len) != 0) {
@@ -221,35 +221,35 @@ bool dpforam::check_sharing(const char* const share_23[2], int len,
 	cal_xor(tmp, share_23[0], len, tmp);
 	cal_xor(tmp, share_23[1], len, tmp);
 	if (memcmp(tmp, expect, len) != 0) {
-		for (int i = 0; i < len; i++) {
-			std::cout << (int) tmp[i] << " ";
+		for (uint i = 0; i < len; i++) {
+			std::cout << (uint) tmp[i] << " ";
 		}
 		std::cout << std::endl;
 	}
 	return memcmp(tmp, expect, len) == 0;
 }
 
-void dpforam::access(const long addr_23[2], const char* const newRec_23[2],
-		bool isRead, char* rec_23[2]) {
-	int mask = ttp - 1;
-	long addrPre_23[2];
-	int addrSuf_23[2];
-	for (int i = 0; i < 2; i++) {
+void dpforam::access(const ulong addr_23[2], const uchar* const newRec_23[2],
+		bool isRead, uchar* rec_23[2]) {
+	uint mask = ttp - 1;
+	ulong addrPre_23[2];
+	uint addrSuf_23[2];
+	for (uint i = 0; i < 2; i++) {
 		addrPre_23[i] = addr_23[i] >> tau;
-		addrSuf_23[i] = (int) addr_23[i] & mask;
+		addrSuf_23[i] = (uint) addr_23[i] & mask;
 	}
 
-	char* block_23[2];
-	char* pir_out[2];
-	char* delta_rec_23[2];
-	char* delta_block_23[2];
-	char* delta_rom_23[2];
-	for (int i = 0; i < 2; i++) {
-		block_23[i] = new char[DBytes];
-		pir_out[i] = new char[N];
-		delta_rec_23[i] = new char[nextLogNBytes];
-		delta_block_23[i] = new char[DBytes];
-		delta_rom_23[i] = new char[N * DBytes];
+	uchar* block_23[2];
+	uchar* pir_out[2];
+	uchar* delta_rec_23[2];
+	uchar* delta_block_23[2];
+	uchar* delta_rom_23[2];
+	for (uint i = 0; i < 2; i++) {
+		block_23[i] = new uchar[DBytes];
+		pir_out[i] = new uchar[N];
+		delta_rec_23[i] = new uchar[nextLogNBytes];
+		delta_block_23[i] = new uchar[DBytes];
+		delta_rom_23[i] = new uchar[N * DBytes];
 	}
 	block_pir(addrPre_23, rom, block_23, pir_out);
 	rec_pir(addrSuf_23, block_23, rec_23);
@@ -266,20 +266,20 @@ void dpforam::access(const long addr_23[2], const char* const newRec_23[2],
 	//char zero2[DBytes] = {0};
 	//std::cout << "check point 2: " << check_sharing(delta_block_23, DBytes, zero2) << std::endl;
 
-	int int_addrPre_23[2] = { (int) addrPre_23[0], (int) addrPre_23[1] };
-	gen_delta_array(int_addrPre_23, (int) N, DBytes, delta_block_23,
+	uint int_addrPre_23[2] = { (uint) addrPre_23[0], (uint) addrPre_23[1] };
+	gen_delta_array(int_addrPre_23, (uint) N, DBytes, delta_block_23,
 			delta_rom_23);
 
 	//char zero3[N*DBytes] = {0};
 	//std::cout << "check point 3: " << check_sharing(delta_rom_23, N*DBytes, zero3) << std::endl;
 
-	for (int i = 0; i < 2; i++) {
-		for (long j = 0; j < N; j++) {
+	for (uint i = 0; i < 2; i++) {
+		for (ulong j = 0; j < N; j++) {
 			cal_xor(rom[i][j], delta_rom_23[i] + j * DBytes, DBytes, rom[i][j]);
 		}
 	}
 
-	for (int i = 0; i < 2; i++) {
+	for (uint i = 0; i < 2; i++) {
 		delete[] block_23[i];
 		delete[] pir_out[i];
 		delete[] delta_rec_23[i];
@@ -316,25 +316,25 @@ void dpforam::print_metadata() {
 void dpforam::test() {
 	print_metadata();
 
-	long addr_23[2] = { 0, 0 };
-	char* rec_23[2];
-	char* newRec_23[2];
-	for (int i = 0; i < 2; i++) {
-		rec_23[i] = new char[nextLogNBytes];
-		newRec_23[i] = new char[nextLogNBytes];
+	ulong addr_23[2] = { 0, 0 };
+	uchar* rec_23[2];
+	uchar* newRec_23[2];
+	for (uint i = 0; i < 2; i++) {
+		rec_23[i] = new uchar[nextLogNBytes];
+		newRec_23[i] = new uchar[nextLogNBytes];
 		memset(rec_23[i], 0, nextLogNBytes);
 		memset(newRec_23[i], 0, nextLogNBytes);
 	}
 
-	char rec_exp[nextLogNBytes] = { 0 };
-	for (int t = 0; t < 10; t++) {
+	uchar rec_exp[nextLogNBytes] = { 0 };
+	for (uint t = 0; t < 10; t++) {
 		if (strcmp(party, "eddie") == 0) {
-			rnd->GenerateBlock((unsigned char*) newRec_23[0], nextLogNBytes);
+			rnd->GenerateBlock(newRec_23[0], nextLogNBytes);
 			cons[0]->write(newRec_23[0], nextLogNBytes);
 
 			access(addr_23, newRec_23, true, rec_23);
 
-			char rec_out[nextLogNBytes];
+			uchar rec_out[nextLogNBytes];
 			cons[0]->read(rec_out, nextLogNBytes);
 			cal_xor(rec_out, rec_23[0], nextLogNBytes, rec_out);
 			cal_xor(rec_out, rec_23[1], nextLogNBytes, rec_out);
@@ -359,7 +359,7 @@ void dpforam::test() {
 		}
 	}
 
-	for (int i = 0; i < 2; i++) {
+	for (uint i = 0; i < 2; i++) {
 		delete[] rec_23[i];
 		delete[] newRec_23[i];
 	}

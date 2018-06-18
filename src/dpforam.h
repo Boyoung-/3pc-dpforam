@@ -7,47 +7,47 @@
 class dpforam: public protocol {
 private:
 	static fss1bit fss;
-	char** rom[2];
-	char** wom;
-	char** stash[2];
+	uchar** rom[2];
+	uchar** wom;
+	uchar** stash[2];
 	dpforam* pos_map;
-	long stash_ctr;
+	ulong stash_ctr;
 public:
-	int logN;
-	int logNBytes;
-	int nextLogN;
-	int nextLogNBytes;
-	int tau;
-	int ttp;
-	int DBytes;
-	long N;
+	uint logN;
+	uint logNBytes;
+	uint nextLogN;
+	uint nextLogNBytes;
+	uint tau;
+	uint ttp;
+	uint DBytes;
+	ulong N;
 	bool isFirst;
 	bool isLast;
 
 private:
 	void init();
 	void init_ctr();
-	void set_zero(char** mem);
-	void init_mem(char** &mem);
-	void delete_mem(char** mem);
-	int cal_last_tau(int DBytes);
-	void block_pir(const long addr_with_flag_23[2],
-			const char* const * const mem_23[2], char* block_23[2],
-			char* fss_out[2]);
-	void rec_pir(const int idx_23[2], const char* const block_23[2],
-			char* rec_23[2]);
-	void gen_delta_array(const int idx_23[2], int numChunk, int chunkBytes,
-			const char* const delta_23[2], char* delta_array_23[2]);
+	void set_zero(uchar** mem);
+	void init_mem(uchar** &mem);
+	void delete_mem(uchar** mem);
+	uint cal_last_tau(uint DBytes);
+	void block_pir(const ulong addr_with_flag_23[2],
+			const uchar* const * const mem_23[2], uchar* block_23[2],
+			uchar* fss_out[2]);
+	void rec_pir(const uint idx_23[2], const uchar* const block_23[2],
+			uchar* rec_23[2]);
+	void gen_delta_array(const uint idx_23[2], uint numChunk, uint chunkBytes,
+			const uchar* const delta_23[2], uchar* delta_array_23[2]);
 
-	bool check_sharing(const char* const share_23[2], int len, const char* expect);
+	bool check_sharing(const uchar* const share_23[2], uint len, const uchar* expect);
 public:
 	dpforam(const char* party, connection* cons[2],
 			CryptoPP::AutoSeededRandomPool* rnd,
-			CryptoPP::CTR_Mode<CryptoPP::AES>::Encryption* prgs, int tau,
-			int logN, int DBytes, bool isLast);
+			CryptoPP::CTR_Mode<CryptoPP::AES>::Encryption* prgs, uint tau,
+			uint logN, uint DBytes, bool isLast);
 	~dpforam();
-	void access(const long addr_23[2], const char* const newRec_23[2],
-			bool isRead, char* rec_23[2]);
+	void access(const ulong addr_23[2], const uchar* const newRec_23[2],
+			bool isRead, uchar* rec_23[2]);
 	void print_metadata();
 	void test();
 };

@@ -9,72 +9,72 @@ ssot::ssot(const char* party, connection* cons[2],
 		protocol(party, cons, rnd, prgs) {
 }
 
-void ssot::runE(int b1, const char* const v01[2], int mBytes, char* p1) {
+void ssot::runE(uint b1, const uchar* const v01[2], uint mBytes, uchar* p1) {
 	// offline
-	char y01[2][mBytes];
-	prgs[0].GenerateBlock((unsigned char*) y01[0], mBytes);
-	prgs[0].GenerateBlock((unsigned char*) y01[1], mBytes);
-	int e = prgs[0].GenerateBit();
-	char x[mBytes];
+	uchar y01[2][mBytes];
+	prgs[0].GenerateBlock(y01[0], mBytes);
+	prgs[0].GenerateBlock(y01[1], mBytes);
+	uint e = prgs[0].GenerateBit();
+	uchar x[mBytes];
 	cons[0]->read(x, mBytes);
 
 	// online
-	int t = b1 ^ e;
+	uint t = b1 ^ e;
 	cons[1]->write_int(t);
-	int s = cons[1]->read_int();
+	uint s = cons[1]->read_int();
 
-	char v01_p[2][mBytes];
+	uchar v01_p[2][mBytes];
 	cal_xor(v01[b1], y01[s], mBytes, v01_p[0]);
 	cal_xor(v01[1 - b1], y01[1 - s], mBytes, v01_p[1]);
 	cons[1]->write(v01_p[0], mBytes);
 	cons[1]->write(v01_p[1], mBytes);
-	char u01_p[2][mBytes];
+	uchar u01_p[2][mBytes];
 	cons[1]->read(u01_p[0], mBytes);
 	cons[1]->read(u01_p[1], mBytes);
 
 	cal_xor(u01_p[b1], x, mBytes, p1);
 }
 
-void ssot::runD(int mBytes) {
+void ssot::runD(uint mBytes) {
 	// offline
-	char x01[2][mBytes];
-	prgs[0].GenerateBlock((unsigned char*) x01[0], mBytes);
-	prgs[0].GenerateBlock((unsigned char*) x01[1], mBytes);
-	char y01[2][mBytes];
-	prgs[1].GenerateBlock((unsigned char*) y01[0], mBytes);
-	prgs[1].GenerateBlock((unsigned char*) y01[1], mBytes);
-	char delta[mBytes];
-	rnd->GenerateBlock((unsigned char*) delta, mBytes);
-	int c = prgs[0].GenerateBit();
-	int e = prgs[1].GenerateBit();
-	char x[mBytes];
+	uchar x01[2][mBytes];
+	prgs[0].GenerateBlock(x01[0], mBytes);
+	prgs[0].GenerateBlock(x01[1], mBytes);
+	uchar y01[2][mBytes];
+	prgs[1].GenerateBlock(y01[0], mBytes);
+	prgs[1].GenerateBlock(y01[1], mBytes);
+	uchar delta[mBytes];
+	rnd->GenerateBlock(delta, mBytes);
+	uint c = prgs[0].GenerateBit();
+	uint e = prgs[1].GenerateBit();
+	uchar x[mBytes];
 	cal_xor(x01[e], delta, mBytes, x);
-	char y[mBytes];
+	uchar y[mBytes];
 	cal_xor(y01[c], delta, mBytes, y);
 	cons[0]->write(y, mBytes);
 	cons[1]->write(x, mBytes);
 }
 
-void ssot::runC(int b0, const char* const u01[2], int mBytes, char* p0) {
+void ssot::runC(uint b0, const uchar* const u01[2], uint mBytes, uchar* p0) {
 	// offline
-	char x01[2][mBytes];
-	prgs[1].GenerateBlock((unsigned char*) x01[0], mBytes);
-	prgs[1].GenerateBlock((unsigned char*) x01[1], mBytes);
-	int c = prgs[1].GenerateBit();
-	char y[mBytes];
+	uchar x01[2][mBytes];
+	prgs[1].GenerateBlock(x01[0], mBytes);
+	prgs[1].GenerateBlock(x01[1], mBytes);
+	uint c = prgs[1].GenerateBit();
+	uchar y[mBytes];
 	cons[1]->read(y, mBytes);
 
 	// online
-	int s = b0 ^ c;
+	uint s = b0 ^ c;
 	cons[0]->write_int(s);
-	int t = cons[0]->read_int();
+	uint t = cons[0]->read_int();
 
-	char u01_p[2][mBytes];
+	uchar u01_p[2][mBytes];
 	cal_xor(u01[b0], x01[t], mBytes, u01_p[0]);
 	cal_xor(u01[1 - b0], x01[1 - t], mBytes, u01_p[1]);
 	cons[0]->write(u01_p[0], mBytes);
 	cons[0]->write(u01_p[1], mBytes);
-	char v01_p[2][mBytes];
+	uchar v01_p[2][mBytes];
 	cons[0]->read(v01_p[0], mBytes);
 	cons[0]->read(v01_p[1], mBytes);
 
@@ -82,18 +82,18 @@ void ssot::runC(int b0, const char* const u01[2], int mBytes, char* p0) {
 }
 
 void ssot::test() {
-	for (int test = 0; test < 100; test++) {
-		int mBytes = 50;
-		int b0 = rnd->GenerateBit();
-		int b1 = rnd->GenerateBit();
-		char* u01[2] = { new char[mBytes], new char[mBytes] };
-		char* v01[2] = { new char[mBytes], new char[mBytes] };
-		for (int i = 0; i < 2; i++) {
-			rnd->GenerateBlock((unsigned char*) u01[i], mBytes);
-			rnd->GenerateBlock((unsigned char*) v01[i], mBytes);
+	for (uint test = 0; test < 100; test++) {
+		uint mBytes = 50;
+		uint b0 = rnd->GenerateBit();
+		uint b1 = rnd->GenerateBit();
+		uchar* u01[2] = { new uchar[mBytes], new uchar[mBytes] };
+		uchar* v01[2] = { new uchar[mBytes], new uchar[mBytes] };
+		for (uint i = 0; i < 2; i++) {
+			rnd->GenerateBlock(u01[i], mBytes);
+			rnd->GenerateBlock(v01[i], mBytes);
 		}
-		char p0[mBytes];
-		char p1[mBytes];
+		uchar p0[mBytes];
+		uchar p1[mBytes];
 
 		if (strcmp(party, "eddie") == 0) {
 			runE(b1, v01, mBytes, p1);
@@ -101,9 +101,9 @@ void ssot::test() {
 			cons[1]->read(p0, mBytes);
 			cons[1]->read(u01[0], mBytes);
 			cons[1]->read(u01[1], mBytes);
-			int b = b0 ^ b1;
-			char output[mBytes];
-			char expected[mBytes];
+			uint b = b0 ^ b1;
+			uchar output[mBytes];
+			uchar expected[mBytes];
 			cal_xor(u01[b], v01[b], mBytes, expected);
 			cal_xor(p0, p1, mBytes, output);
 			if (memcmp(output, expected, mBytes) == 0) {
@@ -123,7 +123,7 @@ void ssot::test() {
 			std::cout << "Incorrect party: " << party << std::endl;
 		}
 
-		for (int i = 0; i < 2; i++) {
+		for (uint i = 0; i < 2; i++) {
 			delete[] u01[i];
 			delete[] v01[i];
 		}
