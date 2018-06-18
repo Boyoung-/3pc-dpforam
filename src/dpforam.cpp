@@ -207,6 +207,28 @@ dpforam::~dpforam() {
 	delete_mem(rom[1]);
 }
 
+bool dpforam::check_sharing(const char* const share_23[2], int len,
+		const char* expect) {
+	char tmp[len];
+	cons[0]->write(share_23[0], len);
+	cons[1]->read(tmp, len);
+	if (memcmp(tmp, share_23[1], len) != 0) {
+		std::cout << "!!!" << std::endl;
+		return false;
+	}
+	cons[1]->write(share_23[0], len);
+	cons[0]->read(tmp, len);
+	cal_xor(tmp, share_23[0], len, tmp);
+	cal_xor(tmp, share_23[1], len, tmp);
+	if (memcmp(tmp, expect, len) != 0) {
+		for (int i = 0; i < len; i++) {
+			std::cout << (int) tmp[i] << " ";
+		}
+		std::cout << std::endl;
+	}
+	return memcmp(tmp, expect, len) == 0;
+}
+
 void dpforam::access(const long addr_23[2], const char* const newRec_23[2],
 		bool isRead, char* rec_23[2]) {
 	int mask = ttp - 1;
@@ -234,11 +256,22 @@ void dpforam::access(const long addr_23[2], const char* const newRec_23[2],
 
 	cal_xor(rec_23[0], newRec_23[0], nextLogNBytes, delta_rec_23[0]);
 	cal_xor(rec_23[1], newRec_23[1], nextLogNBytes, delta_rec_23[1]);
+
+	//char zero1[nextLogNBytes] = {0};
+	//std::cout << "check point 1: " << check_sharing(delta_rec_23, nextLogNBytes, zero1) << std::endl;
+
 	gen_delta_array(addrSuf_23, ttp, nextLogNBytes, delta_rec_23,
 			delta_block_23);
+
+	//char zero2[DBytes] = {0};
+	//std::cout << "check point 2: " << check_sharing(delta_block_23, DBytes, zero2) << std::endl;
+
 	int int_addrPre_23[2] = { (int) addrPre_23[0], (int) addrPre_23[1] };
 	gen_delta_array(int_addrPre_23, (int) N, DBytes, delta_block_23,
 			delta_rom_23);
+
+	//char zero3[N*DBytes] = {0};
+	//std::cout << "check point 3: " << check_sharing(delta_rom_23, N*DBytes, zero3) << std::endl;
 
 	for (int i = 0; i < 2; i++) {
 		for (long j = 0; j < N; j++) {
@@ -289,9 +322,42 @@ void dpforam::test() {
 	for (int i = 0; i < 2; i++) {
 		rec_23[i] = new char[nextLogNBytes];
 		newRec_23[i] = new char[nextLogNBytes];
+		memset(rec_23[i], 0, nextLogNBytes);
+		memset(newRec_23[i], 0, nextLogNBytes);
 	}
 
-	access(addr_23, newRec_23, true, rec_23);
+	char rec_exp[nextLogNBytes] = { 0 };
+	for (int t = 0; t < 10; t++) {
+		if (strcmp(party, "eddie") == 0) {
+			rnd->GenerateBlock((unsigned char*) newRec_23[0], nextLogNBytes);
+			cons[0]->write(newRec_23[0], nextLogNBytes);
+
+			access(addr_23, newRec_23, true, rec_23);
+
+			char rec_out[nextLogNBytes];
+			cons[0]->read(rec_out, nextLogNBytes);
+			cal_xor(rec_out, rec_23[0], nextLogNBytes, rec_out);
+			cal_xor(rec_out, rec_23[1], nextLogNBytes, rec_out);
+
+			if (memcmp(rec_exp, rec_out, nextLogNBytes) == 0) {
+				std::cout << "t=" << t << ": Pass" << std::endl;
+			} else {
+				std::cerr << "t=" << t << ": Fail" << std::endl;
+			}
+
+			memcpy(rec_exp, newRec_23[0], nextLogNBytes);
+
+		} else if (strcmp(party, "debbie") == 0) {
+			cons[1]->read(newRec_23[1], nextLogNBytes);
+			access(addr_23, newRec_23, true, rec_23);
+			cons[1]->write(rec_23[0], nextLogNBytes);
+
+		} else if (strcmp(party, "charlie") == 0) {
+			access(addr_23, newRec_23, true, rec_23);
+
+		} else {
+		}
+	}
 
 	for (int i = 0; i < 2; i++) {
 		delete[] rec_23[i];

@@ -38,6 +38,8 @@ private:
 			char* rec_23[2]);
 	void gen_delta_array(const int idx_23[2], int numChunk, int chunkBytes,
 			const char* const delta_23[2], char* delta_array_23[2]);
+
+	bool check_sharing(const char* const share_23[2], int len, const char* expect);
 public:
 	dpforam(const char* party, connection* cons[2],
 			CryptoPP::AutoSeededRandomPool* rnd,

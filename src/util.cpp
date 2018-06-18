@@ -8,15 +8,15 @@ void cal_xor(const char* a, const char* b, int bytes, char* c) {
 	}
 }
 
-void int_to_bytes(int n, char* b) {
+void int_to_bytes(unsigned n, unsigned char* b) {
 	b[0] = (n >> 24) & 0xFF;
 	b[1] = (n >> 16) & 0xFF;
 	b[2] = (n >> 8) & 0xFF;
 	b[3] = n & 0xFF;
 }
 
-int bytes_to_int(const char* b) {
-	int num = 0;
+unsigned bytes_to_int(const unsigned char* b) {
+	unsigned num = 0;
 	for (int i = 0; i < 4; i++) {
 		num <<= 8;
 		num |= b[i];
@@ -24,7 +24,7 @@ int bytes_to_int(const char* b) {
 	return num;
 }
 
-void long_to_bytes(long n, char* b) {
+void long_to_bytes(unsigned long n, unsigned char* b) {
 	b[0] = (n >> 56) & 0xFF;
 	b[1] = (n >> 48) & 0xFF;
 	b[2] = (n >> 40) & 0xFF;
@@ -35,8 +35,8 @@ void long_to_bytes(long n, char* b) {
 	b[7] = n & 0xFF;
 }
 
-long bytes_to_long(const char* b) {
-	long num = 0;
+unsigned long bytes_to_long(const unsigned char* b) {
+	unsigned long num = 0;
 	for (int i = 0; i < 8; i++) {
 		num <<= 8;
 		num |= b[i];
@@ -47,7 +47,7 @@ long bytes_to_long(const char* b) {
 long rand_long(long range) {
 	unsigned long bits;
 	unsigned long val;
-	char bytes[8];
+	unsigned char bytes[8];
 	do {
 		RAND_bytes((unsigned char*) bytes, 8);
 		bits = bytes_to_long(bytes);
