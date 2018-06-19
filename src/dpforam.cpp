@@ -169,20 +169,6 @@ void dpforam::obliv_select(const uchar* const rom_block_23[2],
 		uchar* block_23[2]) {
 	ssot ot(party, cons, rnd, prgs);
 	if (strcmp(party, "eddie") == 0) {
-		//	if (party == Party.Eddie) {
-		//		int b1 = (indicator_23[0] ^ indicator_23[1]) & 1;
-		//		byte[][] v01 = new byte[2][];
-		//		v01[0] = Util.xor(romBlock_23[0], romBlock_23[1]);
-		//		v01[1] = Util.xor(stashBlock_23[0], stashBlock_23[1]);
-		//
-		//		ssot = new SSOT(cons[0], cons[1]);
-		//		byte[] block_12 = ssot.runE(b1, v01);
-		//
-		//		block_23[0] = Util.nextBytes(DBytes, Crypto.sr_DE);
-		//		block_23[1] = Util.xor(block_12, block_23[0]);
-		//		cons[1].write(bandwidth, block_23[1]);
-		//		Util.setXor(block_23[1], cons[1].read());
-		//
 		uint b1 = (indicator_23[0] ^ indicator_23[1]) & 1;
 		uchar* v01[2] = { new uchar[DBytes], new uchar[DBytes] };
 		cal_xor(rom_block_23[0], rom_block_23[1], DBytes, v01[0]);
@@ -198,31 +184,11 @@ void dpforam::obliv_select(const uchar* const rom_block_23[2],
 		delete[] v01[1];
 
 	} else if (strcmp(party, "debbie") == 0) {
-		//	} else if (party == Party.Debbie) {
-		//		ssot = new SSOT(cons[1], cons[0]);
-		//		ssot.runD(DBytes);
-		//
-		//		block_23[0] = Util.nextBytes(DBytes, Crypto.sr_CD);
-		//		block_23[1] = Util.nextBytes(DBytes, Crypto.sr_DE);
-		//
 		ot.runD(DBytes);
 		prgs[0].GenerateBlock(block_23[0], DBytes);
 		prgs[1].GenerateBlock(block_23[1], DBytes);
 
 	} else if (strcmp(party, "charlie") == 0) {
-		//	} else if (party == Party.Charlie) {
-		//		int b0 = indicator_23[1] & 1;
-		//		byte[][] u01 = new byte[2][];
-		//		u01[0] = romBlock_23[1];
-		//		u01[1] = stashBlock_23[1];
-		//
-		//		ssot = new SSOT(cons[0], cons[1]);
-		//		byte[] block_12 = ssot.runC(b0, u01);
-		//
-		//		block_23[1] = Util.nextBytes(DBytes, Crypto.sr_CD);
-		//		block_23[0] = Util.xor(block_12, block_23[1]);
-		//		cons[0].write(bandwidth, block_23[0]);
-		//		Util.setXor(block_23[0], cons[0].read());
 		int b0 = indicator_23[1] & 1;
 		const uchar* u01[2] = { rom_block_23[1], stash_block_23[1] };
 
@@ -259,13 +225,10 @@ void dpforam::append_stash(const uchar* const block_23[2],
 	stash_ctr++;
 
 	if (stash_ctr == N) {
-		// re-init read memory with write memory
 		wom_to_rom();
-		// empty stash
 		set_zero(stash[0]);
 		set_zero(stash[1]);
 		init_ctr();
-		// re-build position map/all previous levels
 		pos_map->init();
 	}
 }
@@ -278,9 +241,6 @@ void dpforam::wom_to_rom() {
 	for (ulong i = 0; i < N; i++) {
 		memcpy(rom[0][i], wom[i], DBytes);
 	}
-	// re-share from (1,3)-sharing to (2,3)-sharing
-//	cons[0].write(bandwidth, WOM);
-//	ROM[1] = cons[1].readArray64ByteArray();
 	for (ulong i = 0; i < N; i++) {
 		cons[0]->write(wom[i], DBytes);
 	}
@@ -451,8 +411,8 @@ void dpforam::access(const ulong addr_23[2], const uchar* const newRec_23[2],
 	pos_map->access(addrPre_23, new_stash_ptr_23, false, stash_ptr_23);
 
 	ulong stash_addrPre_23[2];
-	stash_addrPre_23[0] = bytes_to_long(stash_ptr_23[0]+1, logNBytes-1);
-	stash_addrPre_23[1] = bytes_to_long(stash_ptr_23[1]+1, logNBytes-1);
+	stash_addrPre_23[0] = bytes_to_long(stash_ptr_23[0] + 1, logNBytes - 1);
+	stash_addrPre_23[1] = bytes_to_long(stash_ptr_23[1] + 1, logNBytes - 1);
 
 	uchar* rom_block_23[2];
 	uchar* stash_block_23[2];
@@ -468,7 +428,6 @@ void dpforam::access(const ulong addr_23[2], const uchar* const newRec_23[2],
 	}
 	block_pir(addrPre_23, rom, rom_block_23, rom_fss_out);
 	block_pir(stash_addrPre_23, stash, stash_block_23, stash_fss_out);
-
 
 	uchar indicator_23[2] = { stash_ptr_23[0][0], stash_ptr_23[1][0] };
 	obliv_select(rom_block_23, stash_block_23, indicator_23, block_23);
@@ -491,7 +450,15 @@ void dpforam::access(const ulong addr_23[2], const uchar* const newRec_23[2],
 	update_wom(delta_block_23, rom_fss_out);
 	append_stash(block_23, delta_block_23);
 
-	// delete[] ...
+	for (uint i = 0; i < 2; i++) {
+		delete[] rom_block_23[i];
+		delete[] stash_block_23[i];
+		delete[] rom_fss_out[i];
+		delete[] stash_fss_out[i];
+		delete[] block_23[i];
+		delete[] delta_rec_23[i];
+		delete[] delta_block_23[i];
+	}
 }
 
 void dpforam::print_metadata() {
