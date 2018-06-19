@@ -1,5 +1,7 @@
+#include <algorithm>
 #include <assert.h>
 #include <openssl/rand.h>
+#include <string.h>
 
 #include "util.h"
 
@@ -36,11 +38,31 @@ void long_to_bytes(ulong n, uchar* b) {
 	b[7] = n & 0xFF;
 }
 
+void long_to_bytes(ulong n, uchar* b, uint len) {
+	for (uint i = 0; i < std::min(len, 8u); i++) {
+		b[len - 1 - i] = n & 0xFF;
+		n >>= 8;
+	}
+	if (len > 8) {
+		memset(b, 0, len - 8);
+	}
+}
+
 ulong bytes_to_long(const uchar* b) {
 	ulong num = 0;
 	for (uint i = 0; i < 8; i++) {
 		num <<= 8;
 		num |= b[i];
+	}
+	return num;
+}
+
+ulong bytes_to_long(const uchar* b, uint len) {
+	ulong num = 0;
+	uint min = std::min(len, 8u);
+	for (uint i = 0; i < min; i++) {
+		num <<= 8;
+		num |= b[len - min + i];
 	}
 	return num;
 }
