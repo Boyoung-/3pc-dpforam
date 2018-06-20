@@ -1,10 +1,12 @@
 #include <algorithm>
+#include <assert.h>
 #include <iostream>
 #include <stdint.h>
 
 #include "fss.h"
 #include "util.h"
 
+// TODO: check bottleneck
 void to_byte_vector(uint64_t input, uchar* output, uint size) {
 	for (uint i = 0; i < size; i++) {
 		output[i] = input & 1;
@@ -17,6 +19,7 @@ void to_byte_vector(uint64_t input, uchar* output) {
 }
 
 void to_byte_vector(block input, uchar* output, uint size) {
+	assert(size <= 64);
 	uint64_t *val = (uint64_t *) &input;
 	to_byte_vector(val[0], output, size);
 }
@@ -45,7 +48,7 @@ void fss1bit::eval_all(const uchar* key, uint m, uchar* out) {
 	if (m <= 6) {
 		to_byte_vector(res[0], out, (1 << m));
 	} else {
-		uint maxlayer = std::max(m - 7, (uint) 0);
+		uint maxlayer = std::max(m - 7, 0u);
 		ulong groups = 1L << maxlayer;
 #pragma omp parallel for
 		for (ulong i = 0; i < groups; i++) {
@@ -56,14 +59,14 @@ void fss1bit::eval_all(const uchar* key, uint m, uchar* out) {
 }
 
 // TODO: make this code more efficient?
-void fss1bit::eval_all_with_shift(const uchar* key, uint m, ulong shift,
+void fss1bit::eval_all_with_perm(const uchar* key, uint m, ulong perm,
 		uchar* out) {
 	ulong range = 1L << m;
 	uchar* tmp = new uchar[range];
 	eval_all(key, m, tmp);
 #pragma omp parallel for
 	for (ulong i = 0; i < range; i++) {
-		out[i] = tmp[i ^ shift];
+		out[i] = tmp[i ^ perm];
 	}
 	delete[] tmp;
 }
@@ -77,12 +80,9 @@ void test_fss() {
 
 		for (uint i = 0; i < 100; i++) {
 			bool pass = true;
-
 			ulong alpha = rand_long(range);
-
 			uchar* keys[2];
 			generator.gen(alpha, m, keys);
-
 			uchar* share0 = new uchar[range];
 			uchar* share1 = new uchar[range];
 			evaluators[0].eval_all(keys[0], m, share0);
@@ -90,7 +90,6 @@ void test_fss() {
 
 			for (ulong x = 0; x < range; x++) {
 				uchar output = share0[x] ^ share1[x];
-
 				if (x == alpha) {
 					if (output != 1) {
 						std::cout << "Failed: alpha=" << alpha << ", x=" << x
@@ -113,8 +112,8 @@ void test_fss() {
 				std::cout << "m=" << m << ", i=" << i << ": failed"
 						<< std::endl;
 
-			free(keys[0]);
-			free(keys[1]);
+			delete[] keys[0];
+			delete[] keys[1];
 			delete[] share0;
 			delete[] share1;
 		}

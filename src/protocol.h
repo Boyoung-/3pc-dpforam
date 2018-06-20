@@ -7,7 +7,7 @@
 
 #include "connection.h"
 
-// TODO: bandwidth
+// TODO: bandwidth measurement
 class protocol {
 protected:
 	connection** cons;
@@ -21,7 +21,7 @@ public:
 			CryptoPP::CTR_Mode<CryptoPP::AES>::Encryption* prgs);
 	virtual ~protocol();
 	void sync();
-	virtual void test();
+	virtual void test() = 0;
 };
 
 #endif /* PROTOCOL_H_ */

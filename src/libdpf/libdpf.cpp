@@ -144,8 +144,10 @@ int GEN(AES_KEY *key, long alpha, int n, unsigned char** k0,
 	unsigned char *buff0;
 	unsigned char *buff1;
 	int size = 1 + 16 + 1 + 18 * maxlayer + 16;
-	buff0 = (unsigned char*) malloc(size);
-	buff1 = (unsigned char*) malloc(size);
+//	buff0 = (unsigned char*) malloc(size);
+//	buff1 = (unsigned char*) malloc(size);
+	buff0 = new unsigned char[size];
+	buff1 = new unsigned char[size];
 
 	if (buff0 == NULL || buff1 == NULL) {
 		printf("Memory allocation failed\n");

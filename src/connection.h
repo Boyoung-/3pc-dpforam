@@ -14,6 +14,8 @@ public:
 	virtual void close() = 0;
 	void write_int(int n);
 	int read_int();
+	void write_long(long n);
+	long read_long();
 };
 
 #endif /* CONNECTION_H_ */

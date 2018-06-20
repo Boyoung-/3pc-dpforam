@@ -31,9 +31,8 @@ private:
 	void init_mem(uchar** &mem);
 	void delete_mem(uchar** mem);
 	uint cal_last_tau(uint DBytes);
-	void block_pir(const ulong addr_with_flag_23[2],
-			const uchar* const * const mem_23[2], uchar* block_23[2],
-			uchar* fss_out[2]);
+	void block_pir(const ulong addr_23[2], const uchar* const * const mem_23[2],
+			uchar* block_23[2], uchar* fss_out[2]);
 	void rec_pir(const uint idx_23[2], const uchar* const block_23[2],
 			uchar* rec_23[2]);
 	void gen_delta_array(const uint idx_23[2], uint numChunk, uint chunkBytes,
@@ -52,7 +51,7 @@ public:
 			CryptoPP::CTR_Mode<CryptoPP::AES>::Encryption* prgs, uint tau,
 			uint logN, uint DBytes, bool isLast);
 	~dpforam();
-	void access(const ulong addr_23[2], const uchar* const newRec_23[2],
+	void access(const ulong addr_23[2], const uchar* const new_rec_23[2],
 			bool isRead, uchar* rec_23[2]);
 	void print_metadata();
 	void test();

@@ -12,3 +12,13 @@ int connection::read_int() {
 	read((uchar*) &n, 4);
 	return n;
 }
+
+void connection::write_long(long n) {
+	write((uchar*) &n, 8);
+}
+
+long connection::read_long() {
+	long n;
+	read((uchar*) &n, 8);
+	return n;
+}

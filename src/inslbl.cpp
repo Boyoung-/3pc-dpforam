@@ -9,11 +9,9 @@ inslbl::inslbl(const char* party, connection* cons[2],
 		protocol(party, cons, rnd, prgs) {
 }
 
-void xor_rot(const uchar* in, uint r, uint ttp, uint lBytes, uchar* out) {
+void xor_perm(const uchar* in, uint r, uint ttp, uint lBytes, uchar* out) {
 	for (uint i = 0; i < ttp; i++) {
-		for (uint j = 0; j < lBytes; j++) {
-			out[i * lBytes + j] = in[(i ^ r) * lBytes + j];
-		}
+		memcpy(out + i * lBytes, in + (i ^ r) * lBytes, lBytes);
 	}
 }
 
@@ -31,7 +29,7 @@ void inslbl::runE(uint dN1, const uchar* L1, uint ttp, uint lBytes) {
 	uint alpha1 = rnd->GenerateWord32(0, ttp - 1);
 	uint u1 = alpha1 ^ v;
 	uchar pstar[len];
-	xor_rot(a, u1, ttp, lBytes, pstar);
+	xor_perm(a, u1, ttp, lBytes, pstar);
 	cal_xor(p, pstar, len, pstar);
 	cons[1]->write_int(u1);
 	cons[1]->write(pstar, len);
@@ -42,9 +40,7 @@ void inslbl::runE(uint dN1, const uchar* L1, uint ttp, uint lBytes) {
 	m = cons[0]->read_int();
 	uint beta1 = m ^ dN1;
 	uint index = beta1 ^ w;
-	for (uint i = 0; i < lBytes; i++) {
-		b[index * lBytes + i] = b[index * lBytes + i] ^ L1[i];
-	}
+	cal_xor(b + index * lBytes, L1, lBytes, b + index * lBytes);
 	cons[1]->write(b, len);
 }
 
@@ -61,7 +57,7 @@ void inslbl::runD(uint dN2, const uchar* L2, uint ttp, uint lBytes, uchar* z2) {
 	uint w = prgs[1].GenerateWord32(0, ttp - 1);
 	uint beta2 = rnd->GenerateWord32(0, ttp - 1);
 	uint u2 = beta2 ^ w;
-	xor_rot(b, u2, ttp, lBytes, z2);
+	xor_perm(b, u2, ttp, lBytes, z2);
 	cal_xor(p, z2, len, z2);
 	cons[0]->write_int(u2);
 
@@ -71,9 +67,7 @@ void inslbl::runD(uint dN2, const uchar* L2, uint ttp, uint lBytes, uchar* z2) {
 	m = cons[1]->read_int();
 	uint alpha2 = m ^ dN2;
 	uint index = alpha2 ^ v;
-	for (uint i = 0; i < lBytes; i++) {
-		a[index * lBytes + i] = a[index * lBytes + i] ^ L2[i];
-	}
+	cal_xor(a + index * lBytes, L2, lBytes, a + index * lBytes);
 	cons[0]->write(a, len);
 }
 
@@ -91,8 +85,8 @@ void inslbl::runC(uint ttp, uint lBytes, uchar* pstar) {
 	uchar s2p[len];
 	cons[0]->read(s1, len);
 	cons[1]->read(s2, len);
-	xor_rot(s2, u1, ttp, lBytes, s2p);
-	xor_rot(s1, u2, ttp, lBytes, s1p);
+	xor_perm(s2, u1, ttp, lBytes, s2p);
+	xor_perm(s1, u2, ttp, lBytes, s1p);
 	cal_xor(pstar, s1p, len, pstar);
 	cal_xor(pstar, s2p, len, pstar);
 }

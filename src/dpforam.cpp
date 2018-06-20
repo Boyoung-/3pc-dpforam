@@ -1,3 +1,4 @@
+#include <assert.h>
 #include <iostream>
 
 #include "dpforam.h"
@@ -9,15 +10,9 @@ fss1bit dpforam::fss;
 
 void dpforam::init() {
 	init_ctr();
-
 	set_zero(rom[0]);
 	set_zero(rom[1]);
 	set_zero(wom);
-	if (stash != NULL) {
-		set_zero(stash[0]);
-		set_zero(stash[1]);
-	}
-
 	if (!isFirst) {
 		pos_map->init();
 	}
@@ -31,7 +26,6 @@ void dpforam::set_zero(uchar** mem) {
 	if (mem == NULL) {
 		return;
 	}
-
 	for (ulong i = 0; i < N; i++) {
 		memset(mem[i], 0, DBytes);
 	}
@@ -52,6 +46,7 @@ void dpforam::delete_mem(uchar** mem) {
 }
 
 uint dpforam::cal_last_tau(uint DBytes) {
+	assert(DBytes > 0);
 	if (DBytes < 2) {
 		return 4;
 	} else if (DBytes < 4) {
@@ -65,14 +60,9 @@ uint dpforam::cal_last_tau(uint DBytes) {
 	}
 }
 
-void dpforam::block_pir(const ulong addr_with_flag_23[2],
+void dpforam::block_pir(const ulong addr_23[2],
 		const uchar* const * const mem_23[2], uchar* block_23[2],
 		uchar* fss_out[2]) {
-	ulong mask = N - 1;
-	ulong addr_23[2];
-	addr_23[0] = addr_with_flag_23[0] & mask;
-	addr_23[1] = addr_with_flag_23[1] & mask;
-
 	uchar* keys[2];
 	uint keyBytes = fss.gen(addr_23[0] ^ addr_23[1], logN, keys);
 	cons[0]->write(keys[0], keyBytes);
@@ -82,8 +72,7 @@ void dpforam::block_pir(const ulong addr_with_flag_23[2],
 
 	memset(block_23[0], 0, DBytes);
 	for (uint i = 0; i < 2; i++) {
-		fss.eval_all_with_shift(keys[i], logN, addr_23[i], fss_out[i]);
-		//fss.eval_all(keys[i], logN, fss_out[i]);
+		fss.eval_all_with_perm(keys[i], logN, addr_23[i], fss_out[i]);
 		for (ulong j = 0; j < N; j++) {
 			if (fss_out[i][j] == 1) {
 				cal_xor(block_23[0], mem_23[i][j], DBytes, block_23[0]);
@@ -190,7 +179,6 @@ void dpforam::obliv_select(const uchar* const rom_block_23[2],
 	} else if (strcmp(party, "charlie") == 0) {
 		int b0 = indicator_23[1] & 1;
 		const uchar* u01[2] = { rom_block_23[1], stash_block_23[1] };
-
 		ot.runC(b0, u01, DBytes, block_23[0]);
 		prgs[1].GenerateBlock(block_23[1], DBytes);
 		cal_xor(block_23[0], block_23[1], DBytes, block_23[0]);
@@ -222,21 +210,18 @@ void dpforam::append_stash(const uchar* const block_23[2],
 		memcpy(stash[i][stash_ctr], new_block_23[i], DBytes);
 	}
 	stash_ctr++;
-
 	if (stash_ctr == N) {
-		wom_to_rom();
-		set_zero(stash[0]);
-		set_zero(stash[1]);
 		init_ctr();
+		wom_to_rom();
 		pos_map->init();
 	}
 }
 
+// TODO: buffered read/write
 void dpforam::wom_to_rom() {
 	if (isFirst) {
 		return;
 	}
-
 	for (ulong i = 0; i < N; i++) {
 		memcpy(rom[0][i], wom[i], DBytes);
 	}
@@ -294,7 +279,7 @@ dpforam::~dpforam() {
 	delete_mem(rom[1]);
 }
 
-void dpforam::access(const ulong addr_23[2], const uchar* const newRec_23[2],
+void dpforam::access(const ulong addr_23[2], const uchar* const new_rec_23[2],
 		bool isRead, uchar* rec_23[2]) {
 	uint mask = ttp - 1;
 	ulong addrPre_23[2];
@@ -320,8 +305,8 @@ void dpforam::access(const ulong addr_23[2], const uchar* const newRec_23[2],
 		block_pir(addrPre_23, rom, block_23, fss_out);
 		rec_pir(addrSuf_23, block_23, rec_23);
 
-		cal_xor(rec_23[0], newRec_23[0], nextLogNBytes, delta_rec_23[0]);
-		cal_xor(rec_23[1], newRec_23[1], nextLogNBytes, delta_rec_23[1]);
+		cal_xor(rec_23[0], new_rec_23[0], nextLogNBytes, delta_rec_23[0]);
+		cal_xor(rec_23[1], new_rec_23[1], nextLogNBytes, delta_rec_23[1]);
 
 		gen_delta_array(addrSuf_23, ttp, nextLogNBytes, delta_rec_23,
 				delta_block_23);
@@ -352,7 +337,6 @@ void dpforam::access(const ulong addr_23[2], const uchar* const newRec_23[2],
 
 	uchar new_stash_ptr[logNBytes];
 	long_to_bytes(stash_ctr, new_stash_ptr, logNBytes);
-
 	new_stash_ptr[0] = 1;
 
 	uchar* stash_ptr_23[2];
@@ -363,9 +347,10 @@ void dpforam::access(const ulong addr_23[2], const uchar* const newRec_23[2],
 	}
 	pos_map->access(addrPre_23, new_stash_ptr_23, false, stash_ptr_23);
 
+	ulong mask2 = N - 1;
 	ulong stash_addrPre_23[2];
-	stash_addrPre_23[0] = bytes_to_long(stash_ptr_23[0] + 1, logNBytes - 1);
-	stash_addrPre_23[1] = bytes_to_long(stash_ptr_23[1] + 1, logNBytes - 1);
+	stash_addrPre_23[0] = bytes_to_long(stash_ptr_23[0], logNBytes) & mask2;
+	stash_addrPre_23[1] = bytes_to_long(stash_ptr_23[1], logNBytes) & mask2;
 
 	uchar* rom_block_23[2];
 	uchar* stash_block_23[2];
@@ -393,7 +378,7 @@ void dpforam::access(const ulong addr_23[2], const uchar* const newRec_23[2],
 		if (isRead) {
 			memset(delta_rec_23[i], 0, nextLogNBytes);
 		} else {
-			cal_xor(rec_23[i], newRec_23[i], nextLogNBytes, delta_rec_23[i]);
+			cal_xor(rec_23[i], new_rec_23[i], nextLogNBytes, delta_rec_23[i]);
 		}
 		delta_block_23[i] = new uchar[DBytes];
 	}
@@ -442,25 +427,31 @@ void dpforam::print_metadata() {
 void dpforam::test() {
 	print_metadata();
 
+	bool isRead = false;
+	ulong range = 1L << (logN + tau);
 	ulong addr_23[2] = { 10, 10 };
 	uchar* rec_23[2];
-	uchar* newRec_23[2];
+	uchar* new_rec_23[2];
 	for (uint i = 0; i < 2; i++) {
 		rec_23[i] = new uchar[nextLogNBytes];
-		newRec_23[i] = new uchar[nextLogNBytes];
+		new_rec_23[i] = new uchar[nextLogNBytes];
 		memset(rec_23[i], 0, nextLogNBytes);
-		memset(newRec_23[i], 0, nextLogNBytes);
+		memset(new_rec_23[i], 0, nextLogNBytes);
 	}
-
 	uchar rec_exp[nextLogNBytes] = { 0 };
-	bool isRead = false;
+	if (strcmp(party, "eddie") == 0) {
+		addr_23[0] = rand_long(range);
+		cons[0]->write_long(addr_23[0]);
+	} else if (strcmp(party, "debbie") == 0) {
+		addr_23[1] = cons[1]->read_long();
+	}
 
 	for (uint t = 0; t < 100; t++) {
 		if (strcmp(party, "eddie") == 0) {
-			rnd->GenerateBlock(newRec_23[0], nextLogNBytes);
-			cons[0]->write(newRec_23[0], nextLogNBytes);
+			rnd->GenerateBlock(new_rec_23[0], nextLogNBytes);
+			cons[0]->write(new_rec_23[0], nextLogNBytes);
 
-			access(addr_23, newRec_23, isRead, rec_23);
+			access(addr_23, new_rec_23, isRead, rec_23);
 
 			uchar rec_out[nextLogNBytes];
 			cons[0]->read(rec_out, nextLogNBytes);
@@ -468,27 +459,30 @@ void dpforam::test() {
 			cal_xor(rec_out, rec_23[1], nextLogNBytes, rec_out);
 
 			if (memcmp(rec_exp, rec_out, nextLogNBytes) == 0) {
-				std::cout << "t=" << t << ": Pass" << std::endl;
+				std::cout << "addr=" << addr_23[0] << ", t=" << t << ": Pass"
+						<< std::endl;
 			} else {
-				std::cerr << "t=" << t << ": Fail !!!" << std::endl;
+				std::cerr << "addr=" << addr_23[0] << ", t=" << t
+						<< ": Fail !!!" << std::endl;
 			}
 
-			memcpy(rec_exp, newRec_23[0], nextLogNBytes);
+			memcpy(rec_exp, new_rec_23[0], nextLogNBytes);
 
 		} else if (strcmp(party, "debbie") == 0) {
-			cons[1]->read(newRec_23[1], nextLogNBytes);
-			access(addr_23, newRec_23, isRead, rec_23);
+			cons[1]->read(new_rec_23[1], nextLogNBytes);
+			access(addr_23, new_rec_23, isRead, rec_23);
 			cons[1]->write(rec_23[0], nextLogNBytes);
 
 		} else if (strcmp(party, "charlie") == 0) {
-			access(addr_23, newRec_23, isRead, rec_23);
+			access(addr_23, new_rec_23, isRead, rec_23);
 
 		} else {
+			std::cout << "Incorrect party: " << party << std::endl;
 		}
 	}
 
 	for (uint i = 0; i < 2; i++) {
 		delete[] rec_23[i];
-		delete[] newRec_23[i];
+		delete[] new_rec_23[i];
 	}
 }

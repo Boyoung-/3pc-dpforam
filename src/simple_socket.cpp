@@ -31,7 +31,7 @@ void simple_socket::init_server(int port) {
 	if (bind(server_fd, (struct sockaddr *) &address, sizeof(address)) < 0) {
 		error("init_server: bind failed");
 	}
-	if (listen(server_fd, 3) < 0) {
+	if (listen(server_fd, 1) < 0) {
 		error("init_server: listen failed");
 	}
 	int addr_len = sizeof(address);
@@ -40,8 +40,8 @@ void simple_socket::init_server(int port) {
 	if (socket_fd < 0) {
 		error("init_server: accept failed");
 	}
-	set_no_delay();
 	::close(server_fd);
+	set_no_delay();
 }
 
 void simple_socket::init_client(const char* ip, int port) {

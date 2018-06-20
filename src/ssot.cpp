@@ -22,7 +22,6 @@ void ssot::runE(uint b1, const uchar* const v01[2], uint mBytes, uchar* p1) {
 	uint t = b1 ^ e;
 	cons[1]->write_int(t);
 	uint s = cons[1]->read_int();
-
 	uchar v01_p[2][mBytes];
 	cal_xor(v01[b1], y01[s], mBytes, v01_p[0]);
 	cal_xor(v01[1 - b1], y01[1 - s], mBytes, v01_p[1]);
@@ -31,7 +30,6 @@ void ssot::runE(uint b1, const uchar* const v01[2], uint mBytes, uchar* p1) {
 	uchar u01_p[2][mBytes];
 	cons[1]->read(u01_p[0], mBytes);
 	cons[1]->read(u01_p[1], mBytes);
-
 	cal_xor(u01_p[b1], x, mBytes, p1);
 }
 
@@ -68,7 +66,6 @@ void ssot::runC(uint b0, const uchar* const u01[2], uint mBytes, uchar* p0) {
 	uint s = b0 ^ c;
 	cons[0]->write_int(s);
 	uint t = cons[0]->read_int();
-
 	uchar u01_p[2][mBytes];
 	cal_xor(u01[b0], x01[t], mBytes, u01_p[0]);
 	cal_xor(u01[1 - b0], x01[1 - t], mBytes, u01_p[1]);
@@ -77,7 +74,6 @@ void ssot::runC(uint b0, const uchar* const u01[2], uint mBytes, uchar* p0) {
 	uchar v01_p[2][mBytes];
 	cons[0]->read(v01_p[0], mBytes);
 	cons[0]->read(v01_p[1], mBytes);
-
 	cal_xor(v01_p[b0], y, mBytes, p0);
 }
 
@@ -111,14 +107,17 @@ void ssot::test() {
 			} else {
 				std::cerr << "!!!!! SSOT failed: " << test << std::endl;
 			}
+
 		} else if (strcmp(party, "debbie") == 0) {
 			runD(mBytes);
+
 		} else if (strcmp(party, "charlie") == 0) {
 			runC(b0, u01, mBytes, p0);
 			cons[0]->write_int(b0);
 			cons[0]->write(p0, mBytes);
 			cons[0]->write(u01[0], mBytes);
 			cons[0]->write(u01[1], mBytes);
+
 		} else {
 			std::cout << "Incorrect party: " << party << std::endl;
 		}

@@ -11,7 +11,7 @@ public:
 	fss1bit();
 	uint gen(ulong alpha, uint m, uchar* keys[2]);
 	void eval_all(const uchar* key, uint m, uchar* out);
-	void eval_all_with_shift(const uchar* key, uint m, ulong shift, uchar* out);
+	void eval_all_with_perm(const uchar* key, uint m, ulong perm, uchar* out);
 };
 
 void test_fss();

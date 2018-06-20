@@ -19,6 +19,3 @@ void protocol::sync() {
 	cons[0]->read(&z, 1);
 	cons[1]->read(&z, 1);
 }
-
-void protocol::test() {
-}
