@@ -1,4 +1,3 @@
-#include <algorithm>
 #include <iostream>
 
 #include "dpforam.h"
@@ -293,52 +292,6 @@ dpforam::~dpforam() {
 	}
 	delete_mem(rom[0]);
 	delete_mem(rom[1]);
-}
-
-bool dpforam::check_sharing(const uchar* const share_23[2], uint len,
-		const uchar* expect) {
-	uchar tmp[len];
-	cons[0]->write(share_23[0], len);
-	cons[1]->read(tmp, len);
-	if (memcmp(tmp, share_23[1], len) != 0) {
-		std::cout << "!!!" << std::endl;
-		return false;
-	}
-
-	sync();
-
-	cons[1]->write(share_23[0], len);
-	cons[0]->read(tmp, len);
-	cal_xor(tmp, share_23[0], len, tmp);
-	cal_xor(tmp, share_23[1], len, tmp);
-	if (memcmp(tmp, expect, len) != 0) {
-		for (uint i = 0; i < len; i++) {
-			std::cout << (uint) tmp[i] << " ";
-		}
-		std::cout << std::endl;
-	}
-	return memcmp(tmp, expect, len) == 0;
-}
-
-bool dpforam::check_sharing(const ulong share_23[2], ulong expect) {
-	std::cout << "check point  ";
-	uchar tmp[8];
-	long_to_bytes(share_23[0], tmp);
-	cons[0]->write(tmp, 8);
-	cons[1]->read(tmp, 8);
-	if (bytes_to_long(tmp) != share_23[1]) {
-		std::cout << "!!!" << std::endl;
-		return false;
-	}
-	long_to_bytes(share_23[0], tmp);
-	cons[1]->write(tmp, 8);
-	cons[0]->read(tmp, 8);
-	ulong tmp_long = bytes_to_long(tmp) ^ share_23[0] ^ share_23[1];
-	if (tmp_long != expect) {
-		std::cout << tmp_long << " " << expect << std::endl;
-	}
-	std::cout << std::endl;
-	return tmp_long == expect;
 }
 
 void dpforam::access(const ulong addr_23[2], const uchar* const newRec_23[2],

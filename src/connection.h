@@ -8,6 +8,7 @@ public:
 	virtual ~connection();
 	virtual void init_server(int port) = 0;
 	virtual void init_client(const char* ip, int port) = 0;
+	virtual void set_no_delay() = 0;
 	virtual void write(const uchar* data, ulong bytes) = 0;
 	virtual void read(uchar* data, ulong bytes) = 0;
 	virtual void close() = 0;

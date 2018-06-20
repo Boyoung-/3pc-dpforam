@@ -24,11 +24,6 @@ void simple_socket::init_server(int port) {
 			< 0) {
 		error("init_server: setsockopt failed");
 	}
-	opt = 1;
-	if (setsockopt(server_fd, IPPROTO_TCP, TCP_NODELAY, &opt, sizeof(opt))
-			< 0) {
-		error("init_server: TCP_NODELAY failed");
-	}
 	struct sockaddr_in address;
 	address.sin_family = AF_INET;
 	address.sin_addr.s_addr = INADDR_ANY;
@@ -45,6 +40,7 @@ void simple_socket::init_server(int port) {
 	if (socket_fd < 0) {
 		error("init_server: accept failed");
 	}
+	set_no_delay();
 	::close(server_fd);
 }
 
@@ -62,6 +58,15 @@ void simple_socket::init_client(const char* ip, int port) {
 	if (connect(socket_fd, (struct sockaddr *) &server_addr,
 			sizeof(server_addr)) < 0) {
 		error("init_client: connect failed");
+	}
+	set_no_delay();
+}
+
+void simple_socket::set_no_delay() {
+	int opt = 1;
+	if (setsockopt(socket_fd, IPPROTO_TCP, TCP_NODELAY, &opt, sizeof(opt))
+			< 0) {
+		error("set_no_delay: setsockopt failed");
 	}
 }
 

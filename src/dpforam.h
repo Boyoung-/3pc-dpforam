@@ -46,10 +46,6 @@ private:
 	void append_stash(const uchar* const block_23[2],
 			const uchar* const delta_block_23[2]);
 	void wom_to_rom();
-
-	bool check_sharing(const uchar* const share_23[2], uint len,
-			const uchar* expect);
-	bool check_sharing(const ulong share_23[2], ulong expect);
 public:
 	dpforam(const char* party, connection* cons[2],
 			CryptoPP::AutoSeededRandomPool* rnd,
