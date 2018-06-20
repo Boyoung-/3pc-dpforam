@@ -4,19 +4,19 @@
 #include <string.h>
 #include <unistd.h>
 
-#include "connection.h"
-#include "dpforam.h"
-#include "inslbl.h"
-#include "protocol.h"
-#include "simple_socket.h"
-#include "ssot.h"
+#include "../connection.h"
+#include "../dpforam.h"
+#include "../inslbl.h"
+#include "../protocol.h"
+#include "../simple_socket.h"
+#include "../ssot.h"
 
 using namespace std;
 using namespace CryptoPP;
 
 int main(int argc, const char* argv[]) {
 	if (argc != 3) {
-		cout << "Usage: dpforam [party] [protocol]" << endl;
+		cout << "Usage: proto_test [party] [protocol]" << endl;
 		return 0;
 	}
 

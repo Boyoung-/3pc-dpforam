@@ -15,6 +15,10 @@ SET(CMAKE_EXE_LINKER_FLAGS "${CMAKE_EXE_LINKER_FLAGS} -pg")
 SET(CMAKE_SHARED_LINKER_FLAGS "${CMAKE_SHARED_LINKER_FLAGS} -pg")
 ]]
 
+SET(CMAKE_C_FLAGS "-Wall -O3 -maes")
+SET(CMAKE_CXX_FLAGS "${CMAKE_C_FLAGS} -std=c++11 -fkeep-inline-functions")
+SET(CMAKE_CXX_FLAGS_DEBUG "${CMAKE_CXX_FLAGS_DEBUG} -ggdb")
+
 FILE(GLOB libdpf
   "libdpf/*.h"
   "libdpf/*.cpp"
@@ -23,15 +27,11 @@ FILE(GLOB src
   "*.h"
   "*.cpp"
   )
+  
+macro (add_test _name)
+	add_executable(${_name} "test/${_name}.cpp" ${libdpf} ${src})
+	target_link_libraries(${_name} crypto cryptopp) 
+endmacro()
 
-ADD_EXECUTABLE(libdpf_test ${libdpf} test/libdpf_test.cpp)
-TARGET_COMPILE_OPTIONS(libdpf_test PUBLIC -g -Wall -fkeep-inline-functions -maes)
-TARGET_LINK_LIBRARIES(libdpf_test crypto)
-
-ADD_EXECUTABLE(fss_test ${libdpf} fss.h fss.cpp util.h util.cpp test/fss_test.cpp)
-TARGET_COMPILE_OPTIONS(fss_test PUBLIC -g -Wall -fkeep-inline-functions -maes)
-TARGET_LINK_LIBRARIES(fss_test crypto)
-
-ADD_EXECUTABLE(dpforam ${src} ${libdpf})
-TARGET_COMPILE_OPTIONS(dpforam PUBLIC -g -Wall -fkeep-inline-functions -maes)
-TARGET_LINK_LIBRARIES(dpforam cryptopp crypto)
+add_test(fss_test)
+add_test(proto_test)
