@@ -15,9 +15,19 @@ using namespace std;
 using namespace CryptoPP;
 
 int main(int argc, const char* argv[]) {
-	if (argc != 3) {
-		cout << "Usage: proto_test [party] [protocol]" << endl;
+	if (argc != 3 && argc != 6) {
+		cout << "Usage: ./proto_test [party] [protocol]" << endl;
+		cout << "Usage: ./proto_test [party] dpforam [tau] [logN] [DBytes]" << endl;
 		return 0;
+	}
+
+	uint tau = 3;
+	uint logN = 12;
+	uint DBytes = 4;
+	if (argc == 6) {
+		tau = atoi(argv[3]);
+		logN = atoi(argv[4]);
+		DBytes = atoi(argv[5]);
 	}
 
 	const char* party = argv[1];
@@ -79,10 +89,6 @@ int main(int argc, const char* argv[]) {
 		delete cons[1];
 		return 0;
 	}
-
-	uint tau = 3;
-	uint logN = 20;
-	uint DBytes = 4;
 
 	protocol* test_proto = NULL;
 	if (strcmp(proto, "ssot") == 0) {

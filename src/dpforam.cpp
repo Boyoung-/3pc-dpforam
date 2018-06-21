@@ -227,7 +227,6 @@ dpforam::dpforam(const char* party, connection* cons[2],
 		CryptoPP::CTR_Mode<CryptoPP::AES>::Encryption* prgs, uint tau,
 		uint logN, uint DBytes, bool isLast) :
 		protocol(party, cons, rnd, prgs) {
-	assert(tau >= 3); // for efficient implementation of cal_xor_128()
 	this->isLast = isLast;
 	this->tau = isLast ? std::max(5 - (int) log2(DBytes), 0) : tau;
 	this->logN = isLast ? (logN - this->tau) : logN;

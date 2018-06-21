@@ -21,10 +21,13 @@ void cal_xor_128(const uchar* a, const uchar* b, uint quo, uint rem, uchar* c) {
 		cc[i] = _mm_xor_si128(aa[i], bb[i]);
 	}
 	if (rem) {
-		ulong* aaa = (ulong*) &(aa[i]);
-		ulong* bbb = (ulong*) &(bb[i]);
-		ulong* ccc = (ulong*) &(cc[i]);
-		*ccc = (*aaa) ^ (*bbb);
+		a = (uchar*) &(aa[i]);
+		b = (uchar*) &(bb[i]);
+		c = (uchar*) &(cc[i]);
+		#pragma omp simd
+		for (i = 0; i < rem; i++) {
+			c[i] = a[i] ^ b[i];
+		}
 	}
 }
 
