@@ -1,6 +1,7 @@
 #include <cryptopp/aes.h>
 #include <cryptopp/modes.h>
 #include <iostream>
+#include <omp.h>
 #include <string.h>
 #include <unistd.h>
 
@@ -15,20 +16,24 @@ using namespace std;
 using namespace CryptoPP;
 
 int main(int argc, const char* argv[]) {
-	if (argc != 3 && argc != 6) {
+	if (argc != 3 && argc != 6 && argc != 7) {
 		cout << "Usage: ./proto_test [party] [protocol]" << endl;
-		cout << "Usage: ./proto_test [party] dpforam [tau] [logN] [DBytes]" << endl;
+		cout << "Usage: ./proto_test [party] dpforam [tau] [logN] [DBytes]"
+				<< endl;
+		cout << "Usage: ./proto_test [party] dpforam [tau] [logN] [DBytes] [threads]"
+				<< endl;
 		return 0;
 	}
 
 	uint tau = 3;
 	uint logN = 12;
 	uint DBytes = 4;
-	if (argc == 6) {
+	if (argc >= 6) {
 		tau = atoi(argv[3]);
 		logN = atoi(argv[4]);
 		DBytes = atoi(argv[5]);
 	}
+	omp_set_num_threads(argc == 7 ? atoi(argv[6]) : 1);
 
 	const char* party = argv[1];
 	const char* proto = argv[2];
