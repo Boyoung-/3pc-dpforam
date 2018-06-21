@@ -270,7 +270,7 @@ block* EVALFULL(AES_KEY *key, const unsigned char* k) {
 	//int tL, tR;
 	for (i = 1; i <= maxlayer; i++) {
 		long itemnumber = 1 << (i - 1);
-#pragma omp parallel for
+//#pragma omp parallel for
 		for (j = 0; j < itemnumber; j++) {
 			block sL, sR;
 			int tL, tR;
@@ -294,7 +294,7 @@ block* EVALFULL(AES_KEY *key, const unsigned char* k) {
 	long itemnumber = 1 << maxlayer;
 	block *res = (block*) malloc(sizeof(block) * itemnumber);
 
-#pragma omp parallel for
+//#pragma omp parallel for
 	for (j = 0; j < itemnumber; j++) {
 		res[j] = s[1 - curlayer][j];
 

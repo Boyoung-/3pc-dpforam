@@ -19,6 +19,12 @@ SET(CMAKE_C_FLAGS "-Wall -O3 -maes")
 SET(CMAKE_CXX_FLAGS "${CMAKE_C_FLAGS} -std=c++11 -fkeep-inline-functions")
 SET(CMAKE_CXX_FLAGS_DEBUG "${CMAKE_CXX_FLAGS_DEBUG} -ggdb")
 
+find_package(OpenMP)
+if (OPENMP_FOUND)
+    set (CMAKE_C_FLAGS "${CMAKE_C_FLAGS} ${OpenMP_C_FLAGS}")
+    set (CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} ${OpenMP_CXX_FLAGS}")
+endif()
+
 FILE(GLOB libdpf
   "libdpf/*.h"
   "libdpf/*.cpp"

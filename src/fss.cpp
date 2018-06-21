@@ -50,7 +50,7 @@ void fss1bit::eval_all(const uchar* key, uint m, uchar* out) {
 	} else {
 		uint maxlayer = std::max(m - 7, 0u);
 		ulong groups = 1L << maxlayer;
-#pragma omp parallel for
+//#pragma omp parallel for
 		for (ulong i = 0; i < groups; i++) {
 			to_byte_vector(res[i], out + i * 128);
 		}
@@ -64,7 +64,7 @@ void fss1bit::eval_all_with_perm(const uchar* key, uint m, ulong perm,
 	ulong range = 1L << m;
 	uchar* tmp = new uchar[range];
 	eval_all(key, m, tmp);
-#pragma omp parallel for
+//#pragma omp simd
 	for (ulong i = 0; i < range; i++) {
 		out[i] = tmp[i ^ perm];
 	}
