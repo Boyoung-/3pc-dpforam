@@ -12,22 +12,7 @@ void cal_xor(const uchar* a, const uchar* b, uint bytes, uchar* c) {
 	}
 }
 
-void cal_xor_128(const uchar* a, const uchar* b, uint bytes, uchar* c) {
-	__m128i* aa = (__m128i*) a;
-	__m128i* bb = (__m128i*) b;
-	__m128i* cc = (__m128i*) c;
-	uint quo = bytes / 16;
-	for (uint i = 0; i < quo; i++) {
-		cc[i] = _mm_xor_si128(aa[i], bb[i]);
-	}
-	uint rem = bytes % 16;
-	for (uint i = bytes - 1; i > bytes - 1 - rem; i--) {
-		c[i] = a[i] ^ b[i];
-	}
-}
-
-void cal_xor_128(const uchar* a, const uchar* b, uint quo, uint start, uint end,
-		uchar* c) {
+void cal_xor_128(const uchar* a, const uchar* b, uint quo, uint rem, uchar* c) {
 	__m128i* aa = (__m128i*) a;
 	__m128i* bb = (__m128i*) b;
 	__m128i* cc = (__m128i*) c;
@@ -35,10 +20,12 @@ void cal_xor_128(const uchar* a, const uchar* b, uint quo, uint start, uint end,
 	for (i = 0; i < quo; i++) {
 		cc[i] = _mm_xor_si128(aa[i], bb[i]);
 	}
-//	for (i = start; i < end; i++) {
-//		c[i] = a[i] ^ b[i];
-//	}
-	cal_xor(a+start, b+start, end - start, c+start);
+	if (rem) {
+		ulong* aaa = (ulong*) &(aa[i]);
+		ulong* bbb = (ulong*) &(bb[i]);
+		ulong* ccc = (ulong*) &(cc[i]);
+		*ccc = (*aaa) ^ (*bbb);
+	}
 }
 
 void int_to_bytes(uint n, uchar* b) {

@@ -56,18 +56,19 @@ void dpforam::block_pir(const ulong addr_23[2],
 	cons[1]->read(keys[0], keyBytes);
 
 	uint quo = DBytes / 16;
-	uint start = DBytes - DBytes % 16;
+	uint rem = DBytes % 16;
 	memset(block_23[0], 0, DBytes);
+	memset(block_23[1], 0, DBytes);
+//#pragma omp parallel for num_threads(2)
 	for (uint i = 0; i < 2; i++) {
 		fss.eval_all_with_perm(keys[i], logN, addr_23[i], fss_out[i]);
 		for (ulong j = 0; j < N; j++) {
 			if (fss_out[i][j] == 1) {
-				cal_xor_128(block_23[0], mem_23[i][j], quo, start, DBytes,
-						block_23[0]);
+				cal_xor_128(block_23[i], mem_23[i][j], quo, rem, block_23[i]);
 			}
 		}
 	}
-
+	cal_xor_128(block_23[0], block_23[1], quo, rem, block_23[0]);
 	cons[0]->write(block_23[0], DBytes);
 	cons[1]->read(block_23[1], DBytes);
 
@@ -182,12 +183,11 @@ void dpforam::obliv_select(const uchar* const rom_block_23[2],
 void dpforam::update_wom(const uchar* const delta_block_23[2],
 		const uchar* const fss_out[2]) {
 	uint quo = DBytes / 16;
-	uint start = DBytes - DBytes % 16;
+	uint rem = DBytes % 16;
 	for (uint i = 0; i < 2; i++) {
 		for (ulong j = 0; j < N; j++) {
 			if (fss_out[i][j] == 1) {
-				cal_xor_128(wom[j], delta_block_23[i], quo, start, DBytes,
-						wom[j]);
+				cal_xor_128(wom[j], delta_block_23[i], quo, rem, wom[j]);
 			}
 		}
 	}
@@ -227,6 +227,7 @@ dpforam::dpforam(const char* party, connection* cons[2],
 		CryptoPP::CTR_Mode<CryptoPP::AES>::Encryption* prgs, uint tau,
 		uint logN, uint DBytes, bool isLast) :
 		protocol(party, cons, rnd, prgs) {
+	assert(tau >= 3); // for efficient implementation of cal_xor_128()
 	this->isLast = isLast;
 	this->tau = isLast ? std::max(5 - (int) log2(DBytes), 0) : tau;
 	this->logN = isLast ? (logN - this->tau) : logN;
