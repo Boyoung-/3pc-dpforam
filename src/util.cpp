@@ -26,6 +26,21 @@ void cal_xor_128(const uchar* a, const uchar* b, uint bytes, uchar* c) {
 	}
 }
 
+void cal_xor_128(const uchar* a, const uchar* b, uint quo, uint start, uint end,
+		uchar* c) {
+	__m128i* aa = (__m128i*) a;
+	__m128i* bb = (__m128i*) b;
+	__m128i* cc = (__m128i*) c;
+	uint i;
+	for (i = 0; i < quo; i++) {
+		cc[i] = _mm_xor_si128(aa[i], bb[i]);
+	}
+//	for (i = start; i < end; i++) {
+//		c[i] = a[i] ^ b[i];
+//	}
+	cal_xor(a+start, b+start, end - start, c+start);
+}
+
 void int_to_bytes(uint n, uchar* b) {
 	b[0] = (n >> 24) & 0xFF;
 	b[1] = (n >> 16) & 0xFF;
