@@ -1,5 +1,6 @@
 #include <algorithm>
 #include <assert.h>
+#include <emmintrin.h>
 #include <openssl/rand.h>
 #include <string.h>
 
@@ -7,6 +8,20 @@
 
 void cal_xor(const uchar* a, const uchar* b, uint bytes, uchar* c) {
 	for (uint i = 0; i < bytes; i++) {
+		c[i] = a[i] ^ b[i];
+	}
+}
+
+void cal_xor_128(const uchar* a, const uchar* b, uint bytes, uchar* c) {
+	__m128i* aa = (__m128i*) a;
+	__m128i* bb = (__m128i*) b;
+	__m128i* cc = (__m128i*) c;
+	uint quo = bytes / 16;
+	for (uint i = 0; i < quo; i++) {
+		cc[i] = _mm_xor_si128(aa[i], bb[i]);
+	}
+	uint rem = bytes % 16;
+	for (uint i = bytes - 1; i > bytes - 1 - rem; i--) {
 		c[i] = a[i] ^ b[i];
 	}
 }

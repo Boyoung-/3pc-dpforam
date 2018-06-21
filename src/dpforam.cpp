@@ -60,7 +60,7 @@ void dpforam::block_pir(const ulong addr_23[2],
 		fss.eval_all_with_perm(keys[i], logN, addr_23[i], fss_out[i]);
 		for (ulong j = 0; j < N; j++) {
 			if (fss_out[i][j] == 1) {
-				cal_xor(block_23[0], mem_23[i][j], DBytes, block_23[0]);
+				cal_xor_128(block_23[0], mem_23[i][j], DBytes, block_23[0]);
 			}
 		}
 	}
@@ -181,7 +181,7 @@ void dpforam::update_wom(const uchar* const delta_block_23[2],
 	for (uint i = 0; i < 2; i++) {
 		for (ulong j = 0; j < N; j++) {
 			if (fss_out[i][j] == 1) {
-				cal_xor(wom[j], delta_block_23[i], DBytes, wom[j]);
+				cal_xor_128(wom[j], delta_block_23[i], DBytes, wom[j]);
 			}
 		}
 	}
