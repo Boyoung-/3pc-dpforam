@@ -45,21 +45,6 @@ void dpforam::delete_mem(uchar** mem) {
 	delete[] mem;
 }
 
-uint dpforam::cal_last_tau(uint DBytes) {
-	assert(DBytes > 0);
-	if (DBytes < 2) {
-		return 4;
-	} else if (DBytes < 4) {
-		return 3;
-	} else if (DBytes < 8) {
-		return 2;
-	} else if (DBytes < 16) {
-		return 1;
-	} else {
-		return 0;
-	}
-}
-
 void dpforam::block_pir(const ulong addr_23[2],
 		const uchar* const * const mem_23[2], uchar* block_23[2],
 		uchar* fss_out[2]) {
@@ -204,10 +189,8 @@ void dpforam::update_wom(const uchar* const delta_block_23[2],
 
 void dpforam::append_stash(const uchar* const block_23[2],
 		const uchar* const delta_block_23[2]) {
-	uchar new_block_23[2][DBytes];
 	for (uint i = 0; i < 2; i++) {
-		cal_xor(block_23[i], delta_block_23[i], DBytes, new_block_23[i]);
-		memcpy(stash[i][stash_ctr], new_block_23[i], DBytes);
+		cal_xor(block_23[i], delta_block_23[i], DBytes, stash[i][stash_ctr]);
 	}
 	stash_ctr++;
 	if (stash_ctr == N) {
@@ -239,7 +222,7 @@ dpforam::dpforam(const char* party, connection* cons[2],
 		uint logN, uint DBytes, bool isLast) :
 		protocol(party, cons, rnd, prgs) {
 	this->isLast = isLast;
-	this->tau = isLast ? cal_last_tau(DBytes) : tau;
+	this->tau = isLast ? std::max(5 - (int) log2(DBytes), 0) : tau;
 	this->logN = isLast ? (logN - this->tau) : logN;
 	ttp = 1 << this->tau;
 	logNBytes = (this->logN + 7) / 8 + 1;
@@ -305,9 +288,14 @@ void dpforam::access(const ulong addr_23[2], const uchar* const new_rec_23[2],
 		block_pir(addrPre_23, rom, block_23, fss_out);
 		rec_pir(addrSuf_23, block_23, rec_23);
 
-		cal_xor(rec_23[0], new_rec_23[0], nextLogNBytes, delta_rec_23[0]);
-		cal_xor(rec_23[1], new_rec_23[1], nextLogNBytes, delta_rec_23[1]);
-
+		for (uint i = 0; i < 2; i++) {
+			if (isRead) {
+				memset(delta_rec_23[i], 0, nextLogNBytes);
+			} else {
+				cal_xor(rec_23[i], new_rec_23[i], nextLogNBytes,
+						delta_rec_23[i]);
+			}
+		}
 		gen_delta_array(addrSuf_23, ttp, nextLogNBytes, delta_rec_23,
 				delta_block_23);
 
@@ -389,6 +377,7 @@ void dpforam::access(const ulong addr_23[2], const uchar* const new_rec_23[2],
 	append_stash(block_23, delta_block_23);
 
 	for (uint i = 0; i < 2; i++) {
+		delete[] stash_ptr_23[i];
 		delete[] rom_block_23[i];
 		delete[] stash_block_23[i];
 		delete[] rom_fss_out[i];
