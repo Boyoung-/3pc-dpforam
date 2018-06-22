@@ -1,7 +1,7 @@
 #!/bin/bash
 
 sudo apt update
-sudo apt install cmake libssl-dev -y
+sudo apt install g++ cmake libssl-dev -y
 git clone https://github.com/weidai11/cryptopp.git
 cd cryptopp
 make
