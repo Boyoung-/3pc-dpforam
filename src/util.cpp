@@ -24,9 +24,27 @@ void cal_xor_128(const uchar* a, const uchar* b, uint quo, uint rem, uchar* c) {
 		a = (uchar*) &(aa[i]);
 		b = (uchar*) &(bb[i]);
 		c = (uchar*) &(cc[i]);
-		#pragma omp simd
+#pragma omp simd
 		for (i = 0; i < rem; i++) {
 			c[i] = a[i] ^ b[i];
+		}
+	}
+}
+
+void set_xor_128(const uchar* __restrict__ a, uint quo, uint rem,
+		uchar* __restrict__ c) {
+	__m128i* aa = (__m128i*) a;
+	__m128i* cc = (__m128i*) c;
+	uint i;
+	for (i = 0; i < quo; i++) {
+		cc[i] = _mm_xor_si128(aa[i], cc[i]);
+	}
+	if (rem) {
+		a = (uchar*) &(aa[i]);
+		c = (uchar*) &(cc[i]);
+#pragma omp simd
+		for (i = 0; i < rem; i++) {
+			c[i] ^= a[i];
 		}
 	}
 }

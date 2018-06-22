@@ -71,13 +71,13 @@ void dpforam::block_pir(const ulong addr_23[2],
 #pragma omp for
 			for (ulong j = 0; j < N; j++) {
 				if (fss_out[i][j]) {
-					cal_xor_128(tmp, mem_23[i][j], quo, rem, tmp);
+					set_xor_128(mem_23[i][j], quo, rem, tmp);
 				}
 			}
 		}
 #pragma omp critical
 		{
-			cal_xor_128(block_23[0], tmp, quo, rem, block_23[0]);
+			set_xor_128(tmp, quo, rem, block_23[0]);
 		}
 	}
 
@@ -102,7 +102,7 @@ void dpforam::rec_pir(const uint idx_23[2], const uchar* const block_23[2],
 		uchar fss_out[ttp];
 		fss.eval_all(keys[i], tau, fss_out);
 		for (uint j = 0; j < ttp; j++) {
-			if (fss_out[j ^ idx_23[i]] == 1) {
+			if (fss_out[j ^ idx_23[i]]) {
 				cal_xor(rec_23[0], block_23[i] + j * nextLogNBytes,
 						nextLogNBytes, rec_23[0]);
 			}
@@ -200,7 +200,7 @@ void dpforam::update_wom(const uchar* const delta_block_23[2],
 	for (ulong j = 0; j < N; j++) {
 		for (uint i = 0; i < 2; i++) {
 			if (fss_out[i][j]) {
-				cal_xor_128(wom[j], delta_block_23[i], quo, rem, wom[j]);
+				set_xor_128(delta_block_23[i], quo, rem, wom[j]);
 			}
 		}
 	}
