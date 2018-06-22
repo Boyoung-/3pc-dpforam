@@ -14,6 +14,4 @@ public:
 	void eval_all_with_perm(const uchar* key, uint m, ulong perm, uchar* out);
 };
 
-void test_fss();
-
 #endif /* FSS_H_ */

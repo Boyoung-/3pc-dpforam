@@ -11,7 +11,7 @@ public:
 	void runE(uint dN1, const uchar* L1, uint ttp, uint lBytes);
 	void runD(uint dN2, const uchar* L2, uint ttp, uint lBytes, uchar* z2);
 	void runC(uint ttp, uint lBytes, uchar* pstar);
-	void test();
+	void test(uint iter);
 };
 
 #endif /* INSLBL_H_ */

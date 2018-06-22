@@ -15,12 +15,15 @@
 using namespace std;
 using namespace CryptoPP;
 
+// TODO: test iteration
 int main(int argc, const char* argv[]) {
 	if (argc != 3 && argc != 6 && argc != 7) {
 		cout << "Usage: ./proto_test [party] [protocol]" << endl;
 		cout << "Usage: ./proto_test [party] dpforam [tau] [logN] [DBytes]"
 				<< endl;
 		cout << "Usage: ./proto_test [party] dpforam [tau] [logN] [DBytes] [threads]"
+				<< endl;
+		cout << "Usage: ./proto_test [party] dpforam [tau] [logN] [DBytes] [threads] [iterations]"
 				<< endl;
 		return 0;
 	}
@@ -34,6 +37,7 @@ int main(int argc, const char* argv[]) {
 		DBytes = atoi(argv[5]);
 	}
 	omp_set_num_threads(argc == 7 ? atoi(argv[6]) : 1);
+	uint iter = argc == 8 ? atoi(argv[7]) : 100;
 
 	const char* party = argv[1];
 	const char* proto = argv[2];
@@ -109,7 +113,7 @@ int main(int argc, const char* argv[]) {
 
 	if (test_proto != NULL) {
 		test_proto->sync();
-		test_proto->test();
+		test_proto->test(iter);
 		test_proto->sync();
 		delete test_proto;
 	}

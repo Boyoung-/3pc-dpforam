@@ -77,8 +77,8 @@ void ssot::runC(uint b0, const uchar* const u01[2], uint mBytes, uchar* p0) {
 	cal_xor(v01_p[b0], y, mBytes, p0);
 }
 
-void ssot::test() {
-	for (uint test = 0; test < 100; test++) {
+void ssot::test(uint iter) {
+	for (uint test = 0; test < iter; test++) {
 		uint mBytes = 50;
 		uint b0 = rnd->GenerateBit();
 		uint b1 = rnd->GenerateBit();

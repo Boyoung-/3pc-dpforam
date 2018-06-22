@@ -230,9 +230,12 @@ void dpforam::wom_to_rom() {
 	}
 	for (ulong i = 0; i < N; i++) {
 		cons[0]->write(wom[i], DBytes);
+//		cons[0]->fwrite(wom[i], DBytes);
 	}
+//	cons[0]->flush();
 	for (ulong i = 0; i < N; i++) {
 		cons[1]->read(rom[1][i], DBytes);
+//		cons[1]->fread(rom[1][i], DBytes);
 	}
 }
 
@@ -433,7 +436,7 @@ void dpforam::print_metadata() {
 	}
 }
 
-void dpforam::test() {
+void dpforam::test(uint iter) {
 	print_metadata();
 
 	bool isRead = false;
@@ -455,7 +458,7 @@ void dpforam::test() {
 		addr_23[1] = cons[1]->read_long();
 	}
 
-	for (uint t = 0; t < 100; t++) {
+	for (uint t = 0; t < iter; t++) {
 		if (strcmp(party, "eddie") == 0) {
 			rnd->GenerateBlock(new_rec_23[0], nextLogNBytes);
 			cons[0]->write(new_rec_23[0], nextLogNBytes);

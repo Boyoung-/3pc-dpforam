@@ -9,9 +9,18 @@
 
 #include "simple_socket.h"
 
+#define BUFF_BYTES 1024 * 16
+
 void error(const char* msg) {
 	perror(msg);
 	exit(EXIT_FAILURE);
+}
+
+void simple_socket::set_stream() {
+	stream = fdopen(socket_fd, "wb+");
+	buffer = new char[BUFF_BYTES];
+	memset(buffer, 0, BUFF_BYTES);
+	setvbuf(stream, buffer, _IOFBF, BUFF_BYTES);
 }
 
 void simple_socket::init_server(int port) {
@@ -41,6 +50,7 @@ void simple_socket::init_server(int port) {
 		error("init_server: accept failed");
 	}
 	::close(server_fd);
+	set_stream();
 	set_no_delay();
 }
 
@@ -59,6 +69,7 @@ void simple_socket::init_client(const char* ip, int port) {
 			sizeof(server_addr)) < 0) {
 		error("init_client: connect failed");
 	}
+	set_stream();
 	set_no_delay();
 }
 
@@ -72,7 +83,7 @@ void simple_socket::set_no_delay() {
 
 void simple_socket::write(const uchar* data, ulong bytes) {
 	long write_bytes;
-	ulong offset = 0L;
+	ulong offset = 0ul;
 	while (offset < bytes) {
 		write_bytes = ::write(socket_fd, data + offset, bytes - offset);
 		if (write_bytes < 0) {
@@ -80,11 +91,12 @@ void simple_socket::write(const uchar* data, ulong bytes) {
 		}
 		offset += write_bytes;
 	}
+	bandwidth += bytes;
 }
 
 void simple_socket::read(uchar* data, ulong bytes) {
 	long read_bytes;
-	ulong offset = 0L;
+	ulong offset = 0ul;
 	while (offset < bytes) {
 		read_bytes = ::read(socket_fd, data + offset, bytes - offset);
 		if (read_bytes < 0) {
@@ -94,6 +106,39 @@ void simple_socket::read(uchar* data, ulong bytes) {
 	}
 }
 
+// TODO: debug
+void simple_socket::fwrite(const uchar* data, ulong bytes) {
+	long write_bytes;
+	ulong offset = 0ul;
+	while (offset < bytes) {
+		write_bytes = ::fwrite(data + offset, 1, bytes - offset, stream);
+		if (write_bytes < 0) {
+			error("write failed");
+		}
+		offset += write_bytes;
+	}
+	bandwidth += bytes;
+}
+
+// TODO: debug
+void simple_socket::fread(uchar* data, ulong bytes) {
+	long read_bytes;
+	ulong offset = 0ul;
+	while (offset < bytes) {
+		read_bytes = ::fread(data + offset, 1, bytes - offset, stream);
+		if (read_bytes < 0) {
+			error("read failed");
+		}
+		offset += read_bytes;
+	}
+}
+
+void simple_socket::flush() {
+	fflush(stream);
+}
+
 void simple_socket::close() {
+	fclose(stream);
+	delete[] buffer;
 	::close(socket_fd);
 }

@@ -53,7 +53,7 @@ public:
 	void access(const ulong addr_23[2], const uchar* const new_rec_23[2],
 			bool isRead, uchar* rec_23[2]);
 	void print_metadata();
-	void test();
+	void test(uint iter);
 };
 
 #endif /* DPFORAM_H_ */

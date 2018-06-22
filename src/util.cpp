@@ -108,13 +108,13 @@ ulong bytes_to_long(const uchar* b, uint len) {
 ulong rand_long(long range) {
 	assert(range > 0);
 	ulong bits;
-	ulong val;
+	long val;
 	uchar bytes[8];
 	do {
 		RAND_bytes(bytes, 8);
 		bits = bytes_to_long(bytes);
 		bits = (bits << 1) >> 1;
 		val = bits % range;
-	} while (bits - val + (range - 1) < 0L);
+	} while ((long) bits - val + (range - 1L) < 0L);
 	return val;
 }

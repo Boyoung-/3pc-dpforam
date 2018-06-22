@@ -91,8 +91,8 @@ void inslbl::runC(uint ttp, uint lBytes, uchar* pstar) {
 	cal_xor(pstar, s2p, len, pstar);
 }
 
-void inslbl::test() {
-	for (uint test = 0; test < 100; test++) {
+void inslbl::test(uint iter) {
+	for (uint test = 0; test < iter; test++) {
 		uint ttp = 256;
 		uint lBytes = 16;
 		uint len = ttp * lBytes;

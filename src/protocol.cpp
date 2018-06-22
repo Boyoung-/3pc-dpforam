@@ -19,3 +19,7 @@ void protocol::sync() {
 	cons[0]->read(&z, 1);
 	cons[1]->read(&z, 1);
 }
+
+ulong protocol::bandwidth() {
+	return cons[0]->bandwidth + cons[1]->bandwidth;
+}
