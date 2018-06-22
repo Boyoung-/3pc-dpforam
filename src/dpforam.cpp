@@ -58,18 +58,28 @@ void dpforam::block_pir(const ulong addr_23[2],
 	uint quo = DBytes / 16;
 	uint rem = DBytes % 16;
 	memset(block_23[0], 0, DBytes);
-	memset(block_23[1], 0, DBytes);
 
-	#pragma omp parallel for
-	for (uint i = 0; i < 2; i++) {
-		fss.eval_all_with_perm(keys[i], logN, addr_23[i], fss_out[i]);
-		for (ulong j = 0; j < N; j++) {
-			if (fss_out[i][j]) {
-				cal_xor_128(block_23[i], mem_23[i][j], quo, rem, block_23[i]);
+#pragma omp parallel
+	{
+#pragma omp for
+		for (uint i = 0; i < 2; i++) {
+			fss.eval_all_with_perm(keys[i], logN, addr_23[i], fss_out[i]);
+		}
+
+		uchar tmp[DBytes] = { 0 };
+		for (uint i = 0; i < 2; i++) {
+#pragma omp for
+			for (ulong j = 0; j < N; j++) {
+				if (fss_out[i][j]) {
+					cal_xor_128(tmp, mem_23[i][j], quo, rem, tmp);
+				}
 			}
 		}
+#pragma omp critical
+		{
+			cal_xor_128(block_23[0], tmp, quo, rem, block_23[0]);
+		}
 	}
-	cal_xor_128(block_23[0], block_23[1], quo, rem, block_23[0]);
 
 	cons[0]->write(block_23[0], DBytes);
 	cons[1]->read(block_23[1], DBytes);
@@ -186,14 +196,15 @@ void dpforam::update_wom(const uchar* const delta_block_23[2],
 		const uchar* const fss_out[2]) {
 	uint quo = DBytes / 16;
 	uint rem = DBytes % 16;
-	for (uint i = 0; i < 2; i++) {
-		#pragma omp parallel for
-		for (ulong j = 0; j < N; j++) {
+#pragma omp parallel for
+	for (ulong j = 0; j < N; j++) {
+		for (uint i = 0; i < 2; i++) {
 			if (fss_out[i][j]) {
 				cal_xor_128(wom[j], delta_block_23[i], quo, rem, wom[j]);
 			}
 		}
 	}
+
 }
 
 void dpforam::append_stash(const uchar* const block_23[2],
