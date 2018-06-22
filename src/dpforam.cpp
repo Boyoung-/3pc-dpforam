@@ -450,7 +450,7 @@ void dpforam::print_metadata() {
 }
 
 void dpforam::test(uint iter) {
-	ulong total_wc = 0;
+	ulong party_wc = 0;
 	ulong wc;
 
 	print_metadata();
@@ -482,7 +482,7 @@ void dpforam::test(uint iter) {
 			sync();
 			wc = current_timestamp();
 			access(addr_23, new_rec_23, isRead, rec_23);
-			total_wc += current_timestamp() - wc;
+			party_wc += current_timestamp() - wc;
 
 			uchar rec_out[nextLogNBytes];
 			cons[0]->read(rec_out, nextLogNBytes);
@@ -505,7 +505,7 @@ void dpforam::test(uint iter) {
 			sync();
 			wc = current_timestamp();
 			access(addr_23, new_rec_23, isRead, rec_23);
-			total_wc += current_timestamp() - wc;
+			party_wc += current_timestamp() - wc;
 
 			cons[1]->write(rec_23[0], nextLogNBytes, false);
 
@@ -513,7 +513,7 @@ void dpforam::test(uint iter) {
 			sync();
 			wc = current_timestamp();
 			access(addr_23, new_rec_23, isRead, rec_23);
-			total_wc += current_timestamp() - wc;
+			party_wc += current_timestamp() - wc;
 
 		} else {
 			std::cout << "Incorrect party: " << party << std::endl;
@@ -525,6 +525,24 @@ void dpforam::test(uint iter) {
 		delete[] new_rec_23[i];
 	}
 
-	std::cout << "Avg Bandwidth(byte): " << (bandwidth() / iter) << std::endl;
-	std::cout << "Avg Wallclock(microsec): " << (total_wc / iter) << std::endl;
+	ulong party_band = bandwidth();
+	cons[0]->write_long(party_band, false);
+	cons[1]->write_long(party_band, false);
+	ulong total_band = party_band;
+	total_band += (ulong) cons[0]->read_long();
+	total_band += (ulong) cons[1]->read_long();
+
+	cons[0]->write_long(party_wc, false);
+	cons[1]->write_long(party_wc, false);
+	ulong max_wc = party_wc;
+	max_wc = std::max(max_wc, (ulong) cons[0]->read_long());
+	max_wc = std::max(max_wc, (ulong) cons[1]->read_long());
+
+	std::cout << std::endl;
+	std::cout << "Party Bandwidth(byte): " << (party_band / iter) << std::endl;
+	std::cout << "Party Wallclock(microsec): " << (party_wc / iter)
+			<< std::endl;
+	std::cout << "Total Bandwidth(byte): " << (total_band / iter) << std::endl;
+	std::cout << "Max Wallclock(microsec): " << (max_wc / iter) << std::endl;
+	std::cout << std::endl;
 }

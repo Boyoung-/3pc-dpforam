@@ -5,41 +5,47 @@
 #include <string.h>
 #include <unistd.h>
 
+#include "../cxxopts.hpp"
 #include "../dpforam.h"
 #include "../inslbl.h"
 #include "../simple_socket.h"
 #include "../ssot.h"
 
-using namespace std;
 using namespace CryptoPP;
+using namespace std;
 
-int main(int argc, const char* argv[]) {
-	if (argc != 3 && argc != 6 && argc != 7 && argc != 8) {
-		cout << "Usage: ./proto_test [party] [protocol]" << endl;
-		cout << "Usage: ./proto_test [party] dpforam [tau] [logN] [DBytes]"
-				<< endl;
-		cout << "Usage: ./proto_test [party] dpforam [tau] [logN] [DBytes] [threads]"
-				<< endl;
-		cout << "Usage: ./proto_test [party] dpforam [tau] [logN] [DBytes] [threads] [iterations]"
-				<< endl;
+int main(int argc, char* argv[]) {
+	cxxopts::Options options(argv[0], "3PC DPF-ORAM IMPLEMENTATION");
+    options.positional_help("[optional args]").show_positional_help();
+	options.add_options()
+			("par", "Party:[eddie|debbie|charlie]",	cxxopts::value<string>())
+			("proto", "Protocol:[dpforam|ssot|inslbl]",	cxxopts::value<string>()->default_value("dpforam"))
+			("eip", "Eddie's ip",	cxxopts::value<string>()->default_value("127.0.0.1"))
+			("dip", "Debbie's ip",	cxxopts::value<string>()->default_value("127.0.0.1"))
+			("tau", "Tau",	cxxopts::value<uint>()->default_value("3"))
+			("logn", "LogN",	cxxopts::value<uint>()->default_value("12"))
+			("db", "DBytes",	cxxopts::value<uint>()->default_value("4"))
+			("thr", "Threads",	cxxopts::value<uint>()->default_value("1"))
+			("iter", "Iterations",	cxxopts::value<uint>()->default_value("100"))
+			;
+
+	auto result = options.parse(argc, argv);
+	if (result.count("par") == 0) {
+		cout << "No party specified" << endl;
+		cout << options.help({"", "Group"}) << endl;
 		return 0;
 	}
+	string party = result["par"].as<string>();
+	string proto = result["proto"].as<string>();
+	string eddie_ip = result["eip"].as<string>();
+	string debbie_ip = result["dip"].as<string>();
+	uint tau = result["tau"].as<uint>();
+	uint logN = result["logn"].as<uint>();
+	uint DBytes = result["db"].as<uint>();
+	uint threads = result["thr"].as<uint>();
+	uint iters = result["iter"].as<uint>();
 
-	uint tau = 3;
-	uint logN = 12;
-	uint DBytes = 4;
-	if (argc >= 6) {
-		tau = atoi(argv[3]);
-		logN = atoi(argv[4]);
-		DBytes = atoi(argv[5]);
-	}
-	omp_set_num_threads(argc == 7 ? atoi(argv[6]) : 1);
-	uint iter = argc == 8 ? atoi(argv[7]) : 100;
-
-	const char* party = argv[1];
-	const char* proto = argv[2];
-
-	const char* host = "127.0.0.1";
+	omp_set_num_threads(threads);
 	int port = 8000;
 
 	connection* cons[2] = { new simple_socket(), new simple_socket() };
@@ -53,7 +59,7 @@ int main(int argc, const char* argv[]) {
 	uint offset_CE = 32;
 	uint offset_CD = 64;
 
-	if (strcmp(party, "eddie") == 0) {
+	if (party == "eddie") {
 		cout << "Establishing connection with debbie... " << flush;
 		cons[0]->init_server(port);
 		cout << "done" << endl;
@@ -65,9 +71,9 @@ int main(int argc, const char* argv[]) {
 		prgs[0].SetKeyWithIV(bytes + offset_DE, 16, bytes + offset_DE + 16);
 		prgs[1].SetKeyWithIV(bytes + offset_CE, 16, bytes + offset_CE + 16);
 
-	} else if (strcmp(party, "debbie") == 0) {
+	} else if (party == "debbie") {
 		cout << "Connecting with eddie... " << flush;
-		cons[1]->init_client(host, port);
+		cons[1]->init_client(eddie_ip.c_str(), port);
 		cout << "done" << endl;
 
 		cout << "Establishing connection with charlie... " << flush;
@@ -77,40 +83,40 @@ int main(int argc, const char* argv[]) {
 		prgs[0].SetKeyWithIV(bytes + offset_CD, 16, bytes + offset_CD + 16);
 		prgs[1].SetKeyWithIV(bytes + offset_DE, 16, bytes + offset_DE + 16);
 
-	} else if (strcmp(party, "charlie") == 0) {
+	} else if (party == "charlie") {
 		cout << "Connecting with eddie... " << flush;
-		cons[0]->init_client(host, port + 1);
+		cons[0]->init_client(eddie_ip.c_str(), port + 1);
 		cout << "done" << endl;
 
 		cout << "Connecting with debbie... " << flush;
-		cons[1]->init_client(host, port + 2);
+		cons[1]->init_client(debbie_ip.c_str(), port + 2);
 		cout << "done" << endl;
 
 		prgs[0].SetKeyWithIV(bytes + offset_CE, 16, bytes + offset_CE + 16);
 		prgs[1].SetKeyWithIV(bytes + offset_CD, 16, bytes + offset_CD + 16);
 
 	} else {
-		cerr << "Incorrect party: " << party << endl;
+		cout << "Incorrect party: " << party << endl;
 		delete cons[0];
 		delete cons[1];
 		return 0;
 	}
 
 	protocol* test_proto = NULL;
-	if (strcmp(proto, "ssot") == 0) {
-		test_proto = new ssot(party, cons, &rnd, prgs);
-	} else if (strcmp(proto, "inslbl") == 0) {
-		test_proto = new inslbl(party, cons, &rnd, prgs);
-	} else if (strcmp(proto, "dpforam") == 0) {
-		test_proto = new dpforam(party, cons, &rnd, prgs, tau, logN, DBytes,
-				true);
+	if (proto == "ssot") {
+		test_proto = new ssot(party.c_str(), cons, &rnd, prgs);
+	} else if (proto == "inslbl") {
+		test_proto = new inslbl(party.c_str(), cons, &rnd, prgs);
+	} else if (proto == "dpforam") {
+		test_proto = new dpforam(party.c_str(), cons, &rnd, prgs, tau, logN,
+				DBytes, true);
 	} else {
-		cerr << "Incorrect protocol: " << proto << endl;
+		cout << "Incorrect protocol: " << proto << endl;
 	}
 
 	if (test_proto != NULL) {
 		test_proto->sync();
-		test_proto->test(iter);
+		test_proto->test(iters);
 		test_proto->sync();
 		delete test_proto;
 	}
