@@ -1,7 +1,6 @@
 #include <algorithm>
 #include <assert.h>
 #include <iostream>
-#include <stdint.h>
 
 #include "fss.h"
 #include "util.h"
@@ -29,26 +28,17 @@ const ulong masks[64] = { 0x0000000000000001ul, 0x0000000000000002ul,
 		0x0800000000000000ul, 0x1000000000000000ul, 0x2000000000000000ul,
 		0x4000000000000000ul, 0x8000000000000000ul };
 
-void to_byte_vector(uint64_t input, uchar* output, uint size) {
+void to_byte_vector(ulong input, uchar* output, uint size) {
 #pragma omp simd aligned(output,masks:16)
 	for (uint i = 0; i < size; i++) {
 		output[i] = (input & masks[i]) != 0ul;
 	}
 }
 
-void to_byte_vector(uint64_t input, uchar* output) {
-	to_byte_vector(input, output, 64);
-}
-
-void to_byte_vector(block input, uchar* output, uint size) {
-	uint64_t *val = (uint64_t *) &input;
-	to_byte_vector(val[0], output, size);
-}
-
 void to_byte_vector(block input, uchar* output) {
-	uint64_t *val = (uint64_t *) &input;
-	to_byte_vector(val[0], output);
-	to_byte_vector(val[1], output + 64);
+	ulong *val = (ulong *) &input;
+	to_byte_vector(val[0], output, 64);
+	to_byte_vector(val[1], output + 64, 64);
 }
 
 fss1bit::fss1bit() {
@@ -67,13 +57,13 @@ uint fss1bit::gen(ulong alpha, uint m, uchar* keys[2]) {
 void fss1bit::eval_all(const uchar* key, uint m, uchar* out) {
 	block* res = EVALFULL(&aes_key, key);
 	if (m <= 6) {
-		to_byte_vector(res[0], out, (1 << m));
+		to_byte_vector(((ulong*) res)[0], out, (1 << m));
 	} else {
 		uint maxlayer = std::max(m - 7, 0u);
-		ulong groups = 1L << maxlayer;
+		ulong groups = 1ul << maxlayer;
 //#pragma omp parallel for
 		for (ulong i = 0; i < groups; i++) {
-			to_byte_vector(res[i], out + i * 128);
+			to_byte_vector(res[i], out + (i << 7));
 		}
 	}
 	free(res);
@@ -82,7 +72,7 @@ void fss1bit::eval_all(const uchar* key, uint m, uchar* out) {
 // TODO: make this code more efficient?
 void fss1bit::eval_all_with_perm(const uchar* key, uint m, ulong perm,
 		uchar* out) {
-	ulong range = 1L << m;
+	ulong range = 1ul << m;
 	uchar* tmp = new uchar[range];
 	eval_all(key, m, tmp);
 //#pragma omp simd
@@ -97,7 +87,7 @@ void test_fss() {
 	fss1bit evaluators[2];
 
 	for (uint m = 1; m <= 20; m++) {
-		ulong range = 1L << m;
+		ulong range = 1ul << m;
 
 		for (uint i = 0; i < 100; i++) {
 			bool pass = true;

@@ -249,7 +249,7 @@ dpforam::dpforam(const char* party, connection* cons[2],
 	nextLogN = isLast ? 0 : logN + tau;
 	nextLogNBytes = isLast ? DBytes : (nextLogN + 7) / 8 + 1;
 	this->DBytes = nextLogNBytes * ttp;
-	N = 1L << this->logN;
+	N = 1ul << this->logN;
 	isFirst = this->logN - tau < tau;
 
 	init_mem(rom[0]);
@@ -437,7 +437,7 @@ void dpforam::test() {
 	print_metadata();
 
 	bool isRead = false;
-	ulong range = 1L << (logN + tau);
+	ulong range = 1ul << (logN + tau);
 	ulong addr_23[2] = { 10, 10 };
 	uchar* rec_23[2];
 	uchar* new_rec_23[2];
