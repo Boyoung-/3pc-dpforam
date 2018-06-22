@@ -1,5 +1,6 @@
 #include <assert.h>
 #include <iostream>
+#include <omp.h>
 
 #include "dpforam.h"
 #include "inslbl.h"
@@ -59,25 +60,37 @@ void dpforam::block_pir(const ulong addr_23[2],
 	uint rem = DBytes % 16;
 	memset(block_23[0], 0, DBytes);
 
-#pragma omp parallel
-	{
-#pragma omp for
+	if (omp_get_num_threads() == 1) {
 		for (uint i = 0; i < 2; i++) {
 			fss.eval_all_with_perm(keys[i], logN, addr_23[i], fss_out[i]);
-		}
-
-		uchar tmp[DBytes] = { 0 };
-		for (uint i = 0; i < 2; i++) {
-#pragma omp for
 			for (ulong j = 0; j < N; j++) {
 				if (fss_out[i][j]) {
-					set_xor_128(mem_23[i][j], quo, rem, tmp);
+					set_xor_128(mem_23[i][j], quo, rem, block_23[0]);
 				}
 			}
 		}
-#pragma omp critical
+
+	} else {
+#pragma omp parallel
 		{
-			set_xor_128(tmp, quo, rem, block_23[0]);
+#pragma omp for
+			for (uint i = 0; i < 2; i++) {
+				fss.eval_all_with_perm(keys[i], logN, addr_23[i], fss_out[i]);
+			}
+
+			uchar tmp[DBytes] = { 0 };
+			for (uint i = 0; i < 2; i++) {
+#pragma omp for
+				for (ulong j = 0; j < N; j++) {
+					if (fss_out[i][j]) {
+						set_xor_128(mem_23[i][j], quo, rem, tmp);
+					}
+				}
+			}
+#pragma omp critical
+			{
+				set_xor_128(tmp, quo, rem, block_23[0]);
+			}
 		}
 	}
 
