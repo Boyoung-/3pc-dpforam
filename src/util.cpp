@@ -3,6 +3,7 @@
 #include <emmintrin.h>
 #include <openssl/rand.h>
 #include <string.h>
+#include <sys/time.h>
 
 #include "util.h"
 
@@ -117,4 +118,10 @@ ulong rand_long(long range) {
 		val = bits % range;
 	} while ((long) bits - val + (range - 1L) < 0L);
 	return val;
+}
+
+ulong current_timestamp() {
+	struct timeval tv;
+	gettimeofday(&tv, NULL);
+	return (ulong) tv.tv_sec * (ulong) 1000000 + (ulong) tv.tv_usec;
 }

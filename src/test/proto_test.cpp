@@ -5,10 +5,8 @@
 #include <string.h>
 #include <unistd.h>
 
-#include "../connection.h"
 #include "../dpforam.h"
 #include "../inslbl.h"
-#include "../protocol.h"
 #include "../simple_socket.h"
 #include "../ssot.h"
 

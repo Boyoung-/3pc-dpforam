@@ -81,7 +81,7 @@ void simple_socket::set_no_delay() {
 	}
 }
 
-void simple_socket::write(const uchar* data, ulong bytes) {
+void simple_socket::write(const uchar* data, ulong bytes, bool count_band) {
 	long write_bytes;
 	ulong offset = 0ul;
 	while (offset < bytes) {
@@ -91,7 +91,9 @@ void simple_socket::write(const uchar* data, ulong bytes) {
 		}
 		offset += write_bytes;
 	}
-	bandwidth += bytes;
+	if (count_band) {
+		bandwidth += bytes;
+	}
 }
 
 void simple_socket::read(uchar* data, ulong bytes) {
@@ -107,7 +109,7 @@ void simple_socket::read(uchar* data, ulong bytes) {
 }
 
 // TODO: debug
-void simple_socket::fwrite(const uchar* data, ulong bytes) {
+void simple_socket::fwrite(const uchar* data, ulong bytes, bool count_band) {
 	long write_bytes;
 	ulong offset = 0ul;
 	while (offset < bytes) {
@@ -117,7 +119,9 @@ void simple_socket::fwrite(const uchar* data, ulong bytes) {
 		}
 		offset += write_bytes;
 	}
-	bandwidth += bytes;
+	if (count_band) {
+		bandwidth += bytes;
+	}
 }
 
 // TODO: debug

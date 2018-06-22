@@ -14,5 +14,6 @@ void long_to_bytes(ulong n, uchar* b, uint len);
 ulong bytes_to_long(const uchar* b);
 ulong bytes_to_long(const uchar* b, uint len);
 ulong rand_long(long range);
+ulong current_timestamp();
 
 #endif /* UTIL_H_ */

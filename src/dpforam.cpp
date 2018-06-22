@@ -450,6 +450,9 @@ void dpforam::print_metadata() {
 }
 
 void dpforam::test(uint iter) {
+	ulong total_wc = 0;
+	ulong wc;
+
 	print_metadata();
 
 	bool isRead = false;
@@ -466,7 +469,7 @@ void dpforam::test(uint iter) {
 	uchar rec_exp[nextLogNBytes] = { 0 };
 	if (strcmp(party, "eddie") == 0) {
 		addr_23[0] = rand_long(range);
-		cons[0]->write_long(addr_23[0]);
+		cons[0]->write_long(addr_23[0], false);
 	} else if (strcmp(party, "debbie") == 0) {
 		addr_23[1] = cons[1]->read_long();
 	}
@@ -474,9 +477,11 @@ void dpforam::test(uint iter) {
 	for (uint t = 0; t < iter; t++) {
 		if (strcmp(party, "eddie") == 0) {
 			rnd->GenerateBlock(new_rec_23[0], nextLogNBytes);
-			cons[0]->write(new_rec_23[0], nextLogNBytes);
+			cons[0]->write(new_rec_23[0], nextLogNBytes, false);
 
+			wc = current_timestamp();
 			access(addr_23, new_rec_23, isRead, rec_23);
+			total_wc += current_timestamp() - wc;
 
 			uchar rec_out[nextLogNBytes];
 			cons[0]->read(rec_out, nextLogNBytes);
@@ -495,11 +500,17 @@ void dpforam::test(uint iter) {
 
 		} else if (strcmp(party, "debbie") == 0) {
 			cons[1]->read(new_rec_23[1], nextLogNBytes);
+
+			wc = current_timestamp();
 			access(addr_23, new_rec_23, isRead, rec_23);
-			cons[1]->write(rec_23[0], nextLogNBytes);
+			total_wc += current_timestamp() - wc;
+
+			cons[1]->write(rec_23[0], nextLogNBytes, false);
 
 		} else if (strcmp(party, "charlie") == 0) {
+			wc = current_timestamp();
 			access(addr_23, new_rec_23, isRead, rec_23);
+			total_wc += current_timestamp() - wc;
 
 		} else {
 			std::cout << "Incorrect party: " << party << std::endl;
@@ -510,4 +521,7 @@ void dpforam::test(uint iter) {
 		delete[] rec_23[i];
 		delete[] new_rec_23[i];
 	}
+
+	std::cout << "Avg Bandwidth(byte): " << (bandwidth() / iter) << std::endl;
+	std::cout << "Avg Wallclock(microsec): " << (total_wc / iter) << std::endl;
 }

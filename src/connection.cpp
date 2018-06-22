@@ -3,8 +3,8 @@
 connection::~connection() {
 }
 
-void connection::write_int(int n) {
-	write((uchar*) &n, 4);
+void connection::write_int(int n, bool count_band) {
+	write((uchar*) &n, 4, count_band);
 }
 
 int connection::read_int() {
@@ -13,8 +13,8 @@ int connection::read_int() {
 	return n;
 }
 
-void connection::write_long(long n) {
-	write((uchar*) &n, 8);
+void connection::write_long(long n, bool count_band) {
+	write((uchar*) &n, 8, count_band);
 }
 
 long connection::read_long() {
