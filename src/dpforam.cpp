@@ -479,6 +479,7 @@ void dpforam::test(uint iter) {
 			rnd->GenerateBlock(new_rec_23[0], nextLogNBytes);
 			cons[0]->write(new_rec_23[0], nextLogNBytes, false);
 
+			sync();
 			wc = current_timestamp();
 			access(addr_23, new_rec_23, isRead, rec_23);
 			total_wc += current_timestamp() - wc;
@@ -501,6 +502,7 @@ void dpforam::test(uint iter) {
 		} else if (strcmp(party, "debbie") == 0) {
 			cons[1]->read(new_rec_23[1], nextLogNBytes);
 
+			sync();
 			wc = current_timestamp();
 			access(addr_23, new_rec_23, isRead, rec_23);
 			total_wc += current_timestamp() - wc;
@@ -508,6 +510,7 @@ void dpforam::test(uint iter) {
 			cons[1]->write(rec_23[0], nextLogNBytes, false);
 
 		} else if (strcmp(party, "charlie") == 0) {
+			sync();
 			wc = current_timestamp();
 			access(addr_23, new_rec_23, isRead, rec_23);
 			total_wc += current_timestamp() - wc;
