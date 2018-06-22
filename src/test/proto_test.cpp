@@ -15,9 +15,8 @@
 using namespace std;
 using namespace CryptoPP;
 
-// TODO: test iteration
 int main(int argc, const char* argv[]) {
-	if (argc != 3 && argc != 6 && argc != 7) {
+	if (argc != 3 && argc != 6 && argc != 7 && argc != 8) {
 		cout << "Usage: ./proto_test [party] [protocol]" << endl;
 		cout << "Usage: ./proto_test [party] dpforam [tau] [logN] [DBytes]"
 				<< endl;
