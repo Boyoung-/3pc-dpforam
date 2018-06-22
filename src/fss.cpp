@@ -41,6 +41,14 @@ void to_byte_vector(block input, uchar* output) {
 	to_byte_vector(val[1], output + 64, 64);
 }
 
+void to_byte_vector_with_perm(ulong input, uchar* output, uint size,
+		uint perm) {
+#pragma omp simd aligned(output,masks:16)
+	for (uint i = 0; i < size; i++) {
+		output[i] = (input & masks[i ^ perm]) != 0ul;
+	}
+}
+
 fss1bit::fss1bit() {
 	long long userkey1 = 597349;
 	long long userkey2 = 121379;
@@ -59,9 +67,8 @@ void fss1bit::eval_all(const uchar* key, uint m, uchar* out) {
 	if (m <= 6) {
 		to_byte_vector(((ulong*) res)[0], out, (1 << m));
 	} else {
-		uint maxlayer = std::max(m - 7, 0u);
+		uint maxlayer = std::max((int) m - 7, 0);
 		ulong groups = 1ul << maxlayer;
-//#pragma omp parallel for
 		for (ulong i = 0; i < groups; i++) {
 			to_byte_vector(res[i], out + (i << 7));
 		}
@@ -69,17 +76,23 @@ void fss1bit::eval_all(const uchar* key, uint m, uchar* out) {
 	free(res);
 }
 
-// TODO: make this code more efficient?
 void fss1bit::eval_all_with_perm(const uchar* key, uint m, ulong perm,
 		uchar* out) {
-	ulong range = 1ul << m;
-	uchar* tmp = new uchar[range];
-	eval_all(key, m, tmp);
-//#pragma omp simd
-	for (ulong i = 0; i < range; i++) {
-		out[i] = tmp[i ^ perm];
+	block* res = EVALFULL(&aes_key, key);
+	ulong* ptr = (ulong*) res;
+	uint index_perm = perm & 63;
+	if (m <= 6) {
+		to_byte_vector_with_perm(ptr[0], out, (1 << m), index_perm);
+	} else {
+		ulong group_perm = perm >> 6;
+		uint maxlayer = std::max((int) m - 6, 0);
+		ulong groups = 1ul << maxlayer;
+		for (ulong i = 0; i < groups; i++) {
+			to_byte_vector_with_perm(ptr[i ^ group_perm], out + (i << 6), 64,
+					index_perm);
+		}
 	}
-	delete[] tmp;
+	free(res);
 }
 
 void test_fss() {
