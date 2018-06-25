@@ -259,14 +259,14 @@ dpforam::dpforam(const char* party, connection* cons[2],
 		protocol(party, cons, rnd, prgs) {
 	this->isLast = isLast;
 	this->tau = isLast ? std::max(5 - (int) log2(DBytes), 0) : tau;
-	this->logN = isLast ? (logN - this->tau) : logN;
+	this->logN = (logN <= this->tau || !isLast) ? logN : (logN - this->tau);
 	ttp = 1 << this->tau;
 	logNBytes = (this->logN + 7) / 8 + 1;
 	nextLogN = isLast ? 0 : logN + tau;
 	nextLogNBytes = isLast ? DBytes : (nextLogN + 7) / 8 + 1;
 	this->DBytes = nextLogNBytes * ttp;
 	N = 1ul << this->logN;
-	isFirst = this->logN - tau < tau;
+	isFirst = this->logN < 2 * tau;
 
 	init_mem(rom[0]);
 	init_mem(rom[1]);
