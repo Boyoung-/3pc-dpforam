@@ -67,6 +67,7 @@ void dpforam::block_pir(const ulong addr_23[2],
 				if (fss_out[i][j]) {
 					set_xor_128(mem_23[i][j], quo, rem, block_23[0]);
 				}
+//				select_xor_128(mem_23[i][j], fss_out[i][j], quo, rem, block_23[0]);
 			}
 		}
 
@@ -215,6 +216,7 @@ void dpforam::update_wom(const uchar* const delta_block_23[2],
 			if (fss_out[i][j]) {
 				set_xor_128(delta_block_23[i], quo, rem, wom[j]);
 			}
+//			select_xor_128(delta_block_23[i], fss_out[i][j], quo, rem, wom[j]);
 		}
 	}
 
