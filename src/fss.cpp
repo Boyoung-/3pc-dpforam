@@ -41,26 +41,24 @@ void to_byte_vector(block input, uchar* output) {
 	to_byte_vector(val[1], output + 64, 64);
 }
 
-#include <iostream>
-
+// TODO: find supported cpu to test BMI2
 void to_byte_vector_with_perm(ulong input, uchar* output, uint size,
 		uint perm) {
-#if defined(__BMI2__)
-	input = general_reverse_bits(input, perm ^ 63);
-	uchar* addr = (uchar*) &input;
-	unsigned long long * data64 = (unsigned long long *) output;
-	for (uint i = 0; i < size/8; ++i) {
-		unsigned long long tmp = 0;
-		memcpy(&tmp, addr+i, 1);
-		data64[i] = _pdep_u64(tmp, (unsigned long long) 0x0101010101010101ULL);
-	}
-#else
-	input = general_reverse_bits(input, perm);
+//#if defined(__BMI2__)
+//	input = general_reverse_bits(input, perm ^ 63);
+//	uchar* addr = (uchar*) &input;
+//	unsigned long long * data64 = (unsigned long long *) output;
+//	for (uint i = 0; i < size/8; ++i) {
+//		unsigned long long tmp = 0;
+//		memcpy(&tmp, addr+i, 1);
+//		data64[i] = _pdep_u64(tmp, (unsigned long long) 0x0101010101010101ULL);
+//	}
+//#else
 #pragma omp simd aligned(output,masks:16)
 	for (uint i = 0; i < size; i++) {
-		output[i] = (input & masks[i]) != 0ul;
+		output[i] = (input & masks[i ^ perm]) != 0ul;
 	}
-#endif
+//#endif
 }
 
 fss1bit::fss1bit() {
