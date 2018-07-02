@@ -31,7 +31,7 @@ private:
 	void init_mem(uchar** &mem);
 	void delete_mem(uchar** mem);
 	void block_pir(const ulong addr_23[2], const uchar* const * const mem_23[2],
-			uchar* block_23[2], uchar* fss_out[2]);
+			ulong size, uchar* block_23[2], uchar* fss_out[2]);
 	void rec_pir(const uint idx_23[2], const uchar* const block_23[2],
 			uchar* rec_23[2]);
 	void gen_delta_array(const uint idx_23[2], uint numChunk, uint chunkBytes,

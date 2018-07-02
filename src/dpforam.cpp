@@ -27,6 +27,7 @@ void dpforam::set_zero(uchar** mem) {
 	if (mem == NULL) {
 		return;
 	}
+#pragma omp parallel for
 	for (ulong i = 0; i < N; i++) {
 		memset(mem[i], 0, DBytes);
 	}
@@ -47,7 +48,7 @@ void dpforam::delete_mem(uchar** mem) {
 }
 
 void dpforam::block_pir(const ulong addr_23[2],
-		const uchar* const * const mem_23[2], uchar* block_23[2],
+		const uchar* const * const mem_23[2], ulong size, uchar* block_23[2],
 		uchar* fss_out[2]) {
 	uchar* keys[2];
 	uint keyBytes = fss.gen(addr_23[0] ^ addr_23[1], logN, keys);
@@ -63,11 +64,10 @@ void dpforam::block_pir(const ulong addr_23[2],
 	if (omp_get_num_threads() == 1) {
 		for (uint i = 0; i < 2; i++) {
 			fss.eval_all_with_perm(keys[i], logN, addr_23[i], fss_out[i]);
-			for (ulong j = 0; j < N; j++) {
+			for (ulong j = 0; j < size; j++) {
 				if (fss_out[i][j]) {
 					set_xor_128(mem_23[i][j], quo, rem, block_23[0]);
 				}
-//				select_xor_128(mem_23[i][j], fss_out[i][j], quo, rem, block_23[0]);
 			}
 		}
 
@@ -82,7 +82,7 @@ void dpforam::block_pir(const ulong addr_23[2],
 			uchar tmp[DBytes] = { 0 };
 			for (uint i = 0; i < 2; i++) {
 #pragma omp for
-				for (ulong j = 0; j < N; j++) {
+				for (ulong j = 0; j < size; j++) {
 					if (fss_out[i][j]) {
 						set_xor_128(mem_23[i][j], quo, rem, tmp);
 					}
@@ -216,7 +216,6 @@ void dpforam::update_wom(const uchar* const delta_block_23[2],
 			if (fss_out[i][j]) {
 				set_xor_128(delta_block_23[i], quo, rem, wom[j]);
 			}
-//			select_xor_128(delta_block_23[i], fss_out[i][j], quo, rem, wom[j]);
 		}
 	}
 
@@ -323,7 +322,7 @@ void dpforam::access(const ulong addr_23[2], const uchar* const new_rec_23[2],
 			delta_block_23[i] = new uchar[DBytes];
 			delta_rom_23[i] = new uchar[N * DBytes];
 		}
-		block_pir(addrPre_23, rom, block_23, fss_out);
+		block_pir(addrPre_23, rom, N, block_23, fss_out);
 		rec_pir(addrSuf_23, block_23, rec_23);
 
 		for (uint i = 0; i < 2; i++) {
@@ -390,8 +389,9 @@ void dpforam::access(const ulong addr_23[2], const uchar* const new_rec_23[2],
 		stash_fss_out[i] = new uchar[N];
 		block_23[i] = new uchar[DBytes];
 	}
-	block_pir(addrPre_23, rom, rom_block_23, rom_fss_out);
-	block_pir(stash_addrPre_23, stash, stash_block_23, stash_fss_out);
+	block_pir(addrPre_23, rom, N, rom_block_23, rom_fss_out);
+	block_pir(stash_addrPre_23, stash, stash_ctr, stash_block_23,
+			stash_fss_out);
 
 	uchar indicator_23[2] = { stash_ptr_23[0][0], stash_ptr_23[1][0] };
 	obliv_select(rom_block_23, stash_block_23, indicator_23, block_23);
