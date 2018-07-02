@@ -99,6 +99,7 @@ void fss1bit::eval_all_with_perm(const uchar* key, uint m, ulong perm,
 		ulong group_perm = perm >> 6;
 		uint maxlayer = std::max((int) m - 6, 0);
 		ulong groups = 1ul << maxlayer;
+//#pragma omp parallel for
 		for (ulong i = 0; i < groups; i++) {
 			to_byte_vector_with_perm(ptr[i ^ group_perm], out + (i << 6), 64,
 					index_perm);

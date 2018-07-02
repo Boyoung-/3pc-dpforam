@@ -80,8 +80,8 @@ void dpforam::block_pir(const ulong addr_23[2],
 			}
 
 			uchar tmp[DBytes] = { 0 };
+#pragma omp for collapse(2)
 			for (uint i = 0; i < 2; i++) {
-#pragma omp for
 				for (ulong j = 0; j < size; j++) {
 					if (fss_out[i][j]) {
 						set_xor_128(mem_23[i][j], quo, rem, tmp);
