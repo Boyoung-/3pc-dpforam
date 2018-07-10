@@ -65,8 +65,10 @@ void dpforam::block_pir(const ulong addr_23[2],
 		for (uint i = 0; i < 2; i++) {
 			fss.eval_all_with_perm(keys[i], logN, addr_23[i], fss_out[i]);
 			for (ulong j = 0; j < size; j++) {
-				if (fss_out[i][j]) {
-					set_xor_128(mem_23[i][j], quo, rem, block_23[0]);
+//				if (fss_out[i][j]) 
+{
+//					set_xor_128(mem_23[i][j], quo, rem, block_23[0]);
+					select_xor_128(mem_23[i][j], fss_out[i][j], quo, rem, block_23[0]);
 				}
 			}
 		}
@@ -83,8 +85,10 @@ void dpforam::block_pir(const ulong addr_23[2],
 #pragma omp for collapse(2)
 			for (uint i = 0; i < 2; i++) {
 				for (ulong j = 0; j < size; j++) {
-					if (fss_out[i][j]) {
-						set_xor_128(mem_23[i][j], quo, rem, tmp);
+//					if (fss_out[i][j]) 
+{
+//						set_xor_128(mem_23[i][j], quo, rem, tmp);
+						select_xor_128(mem_23[i][j], fss_out[i][j], quo, rem, tmp);
 					}
 				}
 			}
@@ -213,8 +217,10 @@ void dpforam::update_wom(const uchar* const delta_block_23[2],
 #pragma omp parallel for
 	for (ulong j = 0; j < N; j++) {
 		for (uint i = 0; i < 2; i++) {
-			if (fss_out[i][j]) {
-				set_xor_128(delta_block_23[i], quo, rem, wom[j]);
+//			if (fss_out[i][j]) 
+{
+				//set_xor_128(delta_block_23[i], quo, rem, wom[j]);
+				select_xor_128(delta_block_23[i], fss_out[i][j], quo, rem, wom[j]);
 			}
 		}
 	}
