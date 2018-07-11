@@ -10,6 +10,7 @@
 #include "../inslbl.h"
 #include "../simple_socket.h"
 #include "../ssot.h"
+#include "../util.h"
 
 using namespace CryptoPP;
 using namespace std;
@@ -108,8 +109,11 @@ int main(int argc, char* argv[]) {
 	} else if (proto == "inslbl") {
 		test_proto = new inslbl(party.c_str(), cons, &rnd, prgs);
 	} else if (proto == "dpforam") {
+		ulong init_wc = current_timestamp();
 		test_proto = new dpforam(party.c_str(), cons, &rnd, prgs, tau, logN,
 				DBytes, true);
+		init_wc = current_timestamp() - init_wc;
+		std::cout << "Init Wallclock(microsec): " << init_wc << std::endl;
 	} else {
 		cout << "Incorrect protocol: " << proto << endl;
 	}
