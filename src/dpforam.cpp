@@ -61,7 +61,7 @@ void dpforam::block_pir(const ulong addr_23[2],
 	uint rem = DBytes % 16;
 	memset(block_23[0], 0, DBytes);
 
-	if (omp_get_num_threads() == 1) {
+	if (omp_get_max_threads() == 1) {
 		for (uint i = 0; i < 2; i++) {
 			fss.eval_all_with_perm(keys[i], logN, addr_23[i], fss_out[i]);
 			for (ulong j = 0; j < size; j++) {
