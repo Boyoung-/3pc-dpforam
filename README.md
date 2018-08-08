@@ -1,10 +1,10 @@
+<pre>
 # 3pc-dpforam
 C++ Implementation of 3PC-DPF-ORAM
 
 Setup:  
 $ ./setup.sh
 
-<pre>
 Usage:  
 $ cd build  
 $ ./proto_test [OPTION...]  
@@ -17,7 +17,6 @@ $ ./proto_test [OPTION...]
       --db arg     DBytes (default: 4)  
       --thr arg    Threads (default: 1)  
       --iter arg   Iterations (default: 100)
-</pre>
       
 Sample Run (localhost):  
 $ ./proto_test --par eddie --logn 12 &  
@@ -30,3 +29,4 @@ Sample Run (remote servers):
 (9.0.1.2)$ ./proto_test --par charlie --logn 12 --eip 1.2.3.4 --dip 5.6.7.8  
 
 Ports Used: 8000-8002
+</pre>
