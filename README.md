@@ -7,15 +7,15 @@ $ ./setup.sh
 Usage:  
 $ cd build  
 $ ./proto_test [OPTION...]  
-      --par arg    Party:[eddie|debbie|charlie]  
-      --proto arg  Protocol:[dpforam|ssot|inslbl] (default: dpforam)  
-      --eip arg    Eddie's ip (default: 127.0.0.1)  
-      --dip arg    Debbie's ip (default: 127.0.0.1)  
-      --tau arg    Tau (default: 3)  
-      --logn arg   LogN (default: 12)  
-      --db arg     DBytes (default: 4)  
-      --thr arg    Threads (default: 1)  
-      --iter arg   Iterations (default: 100)
+&npsp; &npsp; &npsp; --par arg    Party:[eddie|debbie|charlie]  
+&npsp; &npsp; &npsp; --proto arg  Protocol:[dpforam|ssot|inslbl] (default: dpforam)  
+&npsp; &npsp; &npsp; --eip arg    Eddie's ip (default: 127.0.0.1)  
+&npsp; &npsp; &npsp; --dip arg    Debbie's ip (default: 127.0.0.1)  
+&npsp; &npsp; &npsp; --tau arg    Tau (default: 3)  
+&npsp; &npsp; &npsp; --logn arg   LogN (default: 12)  
+&npsp; &npsp; &npsp; --db arg     DBytes (default: 4)  
+&npsp; &npsp; &npsp; --thr arg    Threads (default: 1)  
+&npsp; &npsp; &npsp; --iter arg   Iterations (default: 100)
       
 Sample Run (localhost):  
 $ ./proto_test --par eddie --logn 12 &  
