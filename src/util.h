@@ -2,6 +2,8 @@
 #define UTIL_H_
 
 #include "typedef.h"
+#include "libdpf/block.h"
+
 const __m128i masks_128[2] = {_mm_set_epi32(0, 0, 0, 0), _mm_set_epi32(
                                                              0xFFFFFFFF, 0xFFFFFFFF, 0xFFFFFFFF, 0xFFFFFFFF)};
 const uchar masks_8[2] = {0x00, 0xFF};
