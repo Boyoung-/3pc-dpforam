@@ -7,21 +7,23 @@
 
 #include "connection.h"
 
-class protocol {
+class protocol
+{
 protected:
-	connection** cons;
-	CryptoPP::AutoSeededRandomPool* rnd;
-	CryptoPP::CTR_Mode<CryptoPP::AES>::Encryption* prgs;
-public:
-	const char* party;
+    connection **cons;
+    CryptoPP::AutoSeededRandomPool *rnd;
+    CryptoPP::CTR_Mode<CryptoPP::AES>::Encryption *prgs;
 
-	protocol(const char* party, connection* cons[2],
-			CryptoPP::AutoSeededRandomPool* rnd,
-			CryptoPP::CTR_Mode<CryptoPP::AES>::Encryption* prgs);
-	virtual ~protocol();
-	void sync();
-	ulong bandwidth();
-	virtual void test(uint iter) = 0;
+public:
+    const char *party;
+
+    protocol(const char *party, connection *cons[2],
+             CryptoPP::AutoSeededRandomPool *rnd,
+             CryptoPP::CTR_Mode<CryptoPP::AES>::Encryption *prgs);
+    virtual ~protocol();
+    void sync();
+    unsigned long bandwidth();
+    virtual void test(uint iter) = 0;
 };
 
 #endif /* PROTOCOL_H_ */
