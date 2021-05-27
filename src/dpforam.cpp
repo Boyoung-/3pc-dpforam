@@ -97,7 +97,8 @@ void dpforam::block_pir(const unsigned long addr_23[2],
                 fss.eval_all_with_perm(keys[i], logN, addr_23[i], fss_out[i]);
             }
 
-            uchar tmp[DBytes] = {0};
+            uchar tmp[DBytes];
+            memset(tmp, 0, DBytes * sizeof(uchar));
 #pragma omp for collapse(2)
             for (uint i = 0; i < 2; i++)
             {
@@ -545,7 +546,8 @@ void dpforam::test(uint iter)
         memset(rec_23[i], 0, nextLogNBytes);
         memset(new_rec_23[i], 0, nextLogNBytes);
     }
-    uchar rec_exp[nextLogNBytes] = {0};
+    uchar rec_exp[nextLogNBytes];
+    memset(rec_exp, 0, nextLogNBytes * sizeof(uchar));
     if (strcmp(party, "eddie") == 0)
     {
         addr_23[0] = rand_long(range);
