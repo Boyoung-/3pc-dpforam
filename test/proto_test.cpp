@@ -5,12 +5,12 @@
 #include <string.h>
 #include <unistd.h>
 
-#include "../cxxopts.hpp"
-#include "../dpforam.h"
-#include "../inslbl.h"
-#include "../simple_socket.h"
-#include "../ssot.h"
-#include "../util.h"
+#include "cxxopts.hpp"
+#include "dpforam.h"
+#include "inslbl.h"
+#include "simple_socket.h"
+#include "ssot.h"
+#include "util.h"
 
 using namespace CryptoPP;
 using namespace std;

@@ -30,7 +30,8 @@ block dpf_seed(block *seed)
     return cur_seed;
 }
 
-inline block dpf_random_block(void)
+// inline
+block dpf_random_block(void)
 {
     block out;
     uint64_t *val;

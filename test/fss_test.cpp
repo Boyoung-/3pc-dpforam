@@ -1,7 +1,7 @@
 #include <iostream>
 
-#include "../fss.h"
-#include "../util.h"
+#include "fss.h"
+#include "util.h"
 
 using namespace std;
 

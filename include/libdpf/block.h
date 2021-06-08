@@ -1,8 +1,6 @@
 #ifndef LIBDPF_BLOCK_H
 #define LIBDPF_BLOCK_H
 
-#include "libdpf.h"
-
 #include <stdio.h>
 
 #include <wmmintrin.h>
@@ -20,24 +18,25 @@ typedef __m128i block;
 #define dpf_make_block(X, Y) _mm_set_epi64((__m64)(X), (__m64)(Y))
 #define dpf_double(B) _mm_slli_epi64(B, 1)
 
-#define dpf_left_shirt(v, n)                   \
-    ({                                         \
-        __m128i v1, v2;                        \
-                                               \
-        if ((n) >= 64)                         \
-        {                                      \
-            v1 = _mm_slli_si128(v, 8);         \
-            v1 = _mm_slli_epi64(v1, (n)-64);   \
-        }                                      \
-        else                                   \
-        {                                      \
-            v1 = _mm_slli_epi64(v, n);         \
-            v2 = _mm_slli_si128(v, 8);         \
-            v2 = _mm_srli_epi64(v2, 64 - (n)); \
-            v1 = _mm_or_si128(v1, v2);         \
-        }                                      \
-        v1;                                    \
-    })
+#define dpf_left_shirt(v, n)                       \
+    (                                              \
+        {                                          \
+            __m128i v1, v2;                        \
+                                                   \
+            if ((n) >= 64)                         \
+            {                                      \
+                v1 = _mm_slli_si128(v, 8);         \
+                v1 = _mm_slli_epi64(v1, (n)-64);   \
+            }                                      \
+            else                                   \
+            {                                      \
+                v1 = _mm_slli_epi64(v, n);         \
+                v2 = _mm_slli_si128(v, 8);         \
+                v2 = _mm_srli_epi64(v2, 64 - (n)); \
+                v1 = _mm_or_si128(v1, v2);         \
+            }                                      \
+            v1;                                    \
+        })
 
 block dpf_seed(block *seed);
 block dpf_random_block(void);
