@@ -18,8 +18,8 @@ public:
     void set_no_delay();
     void write(const uchar *data, unsigned long bytes, bool count_band = true);
     void read(uchar *data, unsigned long bytes);
-    void fwrite(const uchar *data, unsigned long bytes, bool count_band = true);
-    void fread(uchar *data, unsigned long bytes);
+    // void fwrite(const uchar *data, unsigned long bytes, bool count_band = true);
+    // void fread(uchar *data, unsigned long bytes);
     void flush();
     void close();
 };

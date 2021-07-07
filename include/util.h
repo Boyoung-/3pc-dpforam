@@ -9,7 +9,7 @@ const __m128i masks_128[2] = {_mm_set_epi32(0, 0, 0, 0), _mm_set_epi32(
 const uchar masks_8[2] = {0x00, 0xFF};
 
 void cal_xor(const uchar *a, const uchar *b, uint bytes, uchar *c);
-void cal_xor_128(const uchar *a, const uchar *b, uint quo, uint rem, uchar *c);
+// void cal_xor_128(const uchar *a, const uchar *b, uint quo, uint rem, uchar *c);
 inline void set_xor_128(const uchar *__restrict__ a, uint quo, uint rem,
                         uchar *__restrict__ c)
 {

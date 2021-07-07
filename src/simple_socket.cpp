@@ -128,40 +128,40 @@ void simple_socket::read(uchar *data, unsigned long bytes)
 }
 
 // TODO: debug
-void simple_socket::fwrite(const uchar *data, unsigned long bytes, bool count_band)
-{
-    long write_bytes;
-    unsigned long offset = 0ul;
-    while (offset < bytes)
-    {
-        write_bytes = ::fwrite(data + offset, 1, bytes - offset, stream);
-        if (write_bytes < 0)
-        {
-            error("write failed");
-        }
-        offset += write_bytes;
-    }
-    if (count_band)
-    {
-        bandwidth += bytes;
-    }
-}
+// void simple_socket::fwrite(const uchar *data, unsigned long bytes, bool count_band)
+// {
+//     long write_bytes;
+//     unsigned long offset = 0ul;
+//     while (offset < bytes)
+//     {
+//         write_bytes = ::fwrite(data + offset, 1, bytes - offset, stream);
+//         if (write_bytes < 0)
+//         {
+//             error("write failed");
+//         }
+//         offset += write_bytes;
+//     }
+//     if (count_band)
+//     {
+//         bandwidth += bytes;
+//     }
+// }
 
 // TODO: debug
-void simple_socket::fread(uchar *data, unsigned long bytes)
-{
-    long read_bytes;
-    unsigned long offset = 0ul;
-    while (offset < bytes)
-    {
-        read_bytes = ::fread(data + offset, 1, bytes - offset, stream);
-        if (read_bytes < 0)
-        {
-            error("read failed");
-        }
-        offset += read_bytes;
-    }
-}
+// void simple_socket::fread(uchar *data, unsigned long bytes)
+// {
+//     long read_bytes;
+//     unsigned long offset = 0ul;
+//     while (offset < bytes)
+//     {
+//         read_bytes = ::fread(data + offset, 1, bytes - offset, stream);
+//         if (read_bytes < 0)
+//         {
+//             error("read failed");
+//         }
+//         offset += read_bytes;
+//     }
+// }
 
 void simple_socket::flush()
 {
