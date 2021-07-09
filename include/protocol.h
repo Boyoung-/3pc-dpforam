@@ -7,8 +7,7 @@
 
 #include "connection.h"
 
-class protocol
-{
+class protocol {
 protected:
     connection **cons;
     CryptoPP::AutoSeededRandomPool *rnd;

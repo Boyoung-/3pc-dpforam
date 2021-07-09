@@ -72,8 +72,7 @@ typedef struct
     v1 = _mm_xor_si128(v1, v2)
 
 static inline void AES_set_encrypt_key(const block userkey,
-                                       AES_KEY *__restrict__ key)
-{
+                                       AES_KEY *__restrict__ key) {
     block x0, x1, x2;
     block *kp = key->rd_key;
     kp[0] = x0 = userkey;
@@ -102,8 +101,7 @@ static inline void AES_set_encrypt_key(const block userkey,
 }
 
 static inline void AES_ecb_encrypt_blks(block *__restrict__ blks,
-                                        unsigned int nblks, const AES_KEY *__restrict__ key)
-{
+                                        unsigned int nblks, const AES_KEY *__restrict__ key) {
     for (unsigned int i = 0; i < nblks; ++i)
         blks[i] = _mm_xor_si128(blks[i], key->rd_key[0]);
     for (unsigned int j = 1; j < key->rounds; ++j)
@@ -114,8 +112,7 @@ static inline void AES_ecb_encrypt_blks(block *__restrict__ blks,
 }
 
 static inline void AES_set_decrypt_key_fast(AES_KEY *__restrict__ dkey,
-                                            const AES_KEY *__restrict__ ekey)
-{
+                                            const AES_KEY *__restrict__ ekey) {
     int j = 0;
     int i = ekey->rounds;
 #if (OCB_KEY_LEN == 0)
@@ -128,16 +125,14 @@ static inline void AES_set_decrypt_key_fast(AES_KEY *__restrict__ dkey,
 }
 
 static inline void AES_set_decrypt_key(block userkey,
-                                       AES_KEY *__restrict__ key)
-{
+                                       AES_KEY *__restrict__ key) {
     AES_KEY temp_key;
     AES_set_encrypt_key(userkey, &temp_key);
     AES_set_decrypt_key_fast(key, &temp_key);
 }
 
 static inline void AES_ecb_decrypt_blks(block *__restrict__ blks,
-                                        unsigned nblks, const AES_KEY *__restrict__ key)
-{
+                                        unsigned nblks, const AES_KEY *__restrict__ key) {
     unsigned i, j, rnds = key->rounds;
     for (i = 0; i < nblks; ++i)
         blks[i] = _mm_xor_si128(blks[i], key->rd_key[0]);

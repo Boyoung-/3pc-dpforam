@@ -4,8 +4,7 @@
 #include "libdpf/libdpf.h"
 #include "typedef.h"
 
-class fss1bit
-{
+class fss1bit {
 private:
     AES_KEY aes_key;
 

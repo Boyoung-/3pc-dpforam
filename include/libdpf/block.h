@@ -1,10 +1,9 @@
 #ifndef LIBDPF_BLOCK_H
 #define LIBDPF_BLOCK_H
 
-#include <stdio.h>
-
-#include <wmmintrin.h>
 #include <emmintrin.h>
+#include <stdio.h>
+#include <wmmintrin.h>
 #include <xmmintrin.h>
 
 typedef __m128i block;
@@ -23,13 +22,10 @@ typedef __m128i block;
         {                                          \
             __m128i v1, v2;                        \
                                                    \
-            if ((n) >= 64)                         \
-            {                                      \
+            if ((n) >= 64) {                       \
                 v1 = _mm_slli_si128(v, 8);         \
                 v1 = _mm_slli_epi64(v1, (n)-64);   \
-            }                                      \
-            else                                   \
-            {                                      \
+            } else {                               \
                 v1 = _mm_slli_epi64(v, n);         \
                 v2 = _mm_slli_si128(v, 8);         \
                 v2 = _mm_srli_epi64(v2, 64 - (n)); \

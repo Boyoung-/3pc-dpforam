@@ -4,8 +4,7 @@
 #include "fss.h"
 #include "protocol.h"
 
-class dpforam : public protocol
-{
+class dpforam : public protocol {
 private:
     static fss1bit fss;
     uchar **rom[2];

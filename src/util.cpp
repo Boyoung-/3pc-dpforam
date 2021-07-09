@@ -1,16 +1,15 @@
-#include <algorithm>
+#include "util.h"
+
 #include <assert.h>
 #include <emmintrin.h>
 #include <openssl/rand.h>
 #include <string.h>
 #include <sys/time.h>
 
-#include "util.h"
+#include <algorithm>
 
-void cal_xor(const uchar *a, const uchar *b, uint bytes, uchar *c)
-{
-    for (uint i = 0; i < bytes; i++)
-    {
+void cal_xor(const uchar *a, const uchar *b, uint bytes, uchar *c) {
+    for (uint i = 0; i < bytes; i++) {
         c[i] = a[i] ^ b[i];
     }
 }
@@ -38,27 +37,23 @@ void cal_xor(const uchar *a, const uchar *b, uint bytes, uchar *c)
 //     }
 // }
 
-void int_to_bytes(uint n, uchar *b)
-{
+void int_to_bytes(uint n, uchar *b) {
     b[0] = (n >> 24) & 0xFF;
     b[1] = (n >> 16) & 0xFF;
     b[2] = (n >> 8) & 0xFF;
     b[3] = n & 0xFF;
 }
 
-uint bytes_to_int(const uchar *b)
-{
+uint bytes_to_int(const uchar *b) {
     uint num = 0;
-    for (uint i = 0; i < 4; i++)
-    {
+    for (uint i = 0; i < 4; i++) {
         num <<= 8;
         num |= b[i];
     }
     return num;
 }
 
-void long_to_bytes(unsigned long n, uchar *b)
-{
+void long_to_bytes(unsigned long n, uchar *b) {
     b[0] = (n >> 56) & 0xFF;
     b[1] = (n >> 48) & 0xFF;
     b[2] = (n >> 40) & 0xFF;
@@ -69,50 +64,41 @@ void long_to_bytes(unsigned long n, uchar *b)
     b[7] = n & 0xFF;
 }
 
-void long_to_bytes(unsigned long n, uchar *b, uint len)
-{
-    for (uint i = 0; i < std::min(len, 8u); i++)
-    {
+void long_to_bytes(unsigned long n, uchar *b, uint len) {
+    for (uint i = 0; i < std::min(len, 8u); i++) {
         b[len - 1 - i] = n & 0xFF;
         n >>= 8;
     }
-    if (len > 8)
-    {
+    if (len > 8) {
         memset(b, 0, len - 8);
     }
 }
 
-unsigned long bytes_to_long(const uchar *b)
-{
+unsigned long bytes_to_long(const uchar *b) {
     unsigned long num = 0;
-    for (uint i = 0; i < 8; i++)
-    {
+    for (uint i = 0; i < 8; i++) {
         num <<= 8;
         num |= b[i];
     }
     return num;
 }
 
-unsigned long bytes_to_long(const uchar *b, uint len)
-{
+unsigned long bytes_to_long(const uchar *b, uint len) {
     unsigned long num = 0;
     uint min = std::min(len, 8u);
-    for (uint i = 0; i < min; i++)
-    {
+    for (uint i = 0; i < min; i++) {
         num <<= 8;
         num |= b[len - min + i];
     }
     return num;
 }
 
-unsigned long rand_long(long range)
-{
+unsigned long rand_long(long range) {
     assert(range > 0);
     unsigned long bits;
     long val;
     uchar bytes[8];
-    do
-    {
+    do {
         RAND_bytes(bytes, 8);
         bits = bytes_to_long(bytes);
         bits = (bits << 1) >> 1;
@@ -121,8 +107,7 @@ unsigned long rand_long(long range)
     return val;
 }
 
-unsigned long current_timestamp()
-{
+unsigned long current_timestamp() {
     struct timeval tv;
     gettimeofday(&tv, NULL);
     return (unsigned long)tv.tv_sec * (unsigned long)1000000 + (unsigned long)tv.tv_usec;

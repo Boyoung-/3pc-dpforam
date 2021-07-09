@@ -3,8 +3,7 @@
 
 #include "connection.h"
 
-class simple_socket : public connection
-{
+class simple_socket : public connection {
 private:
     int socket_fd;
     FILE *stream;

@@ -1,24 +1,21 @@
+#include "inslbl.h"
+
 #include <iostream>
 
-#include "inslbl.h"
 #include "util.h"
 
 inslbl::inslbl(const char *party, connection *cons[2],
                CryptoPP::AutoSeededRandomPool *rnd,
-               CryptoPP::CTR_Mode<CryptoPP::AES>::Encryption *prgs) : protocol(party, cons, rnd, prgs)
-{
+               CryptoPP::CTR_Mode<CryptoPP::AES>::Encryption *prgs) : protocol(party, cons, rnd, prgs) {
 }
 
-void xor_perm(const uchar *in, uint r, uint ttp, uint lBytes, uchar *out)
-{
-    for (uint i = 0; i < ttp; i++)
-    {
+void xor_perm(const uchar *in, uint r, uint ttp, uint lBytes, uchar *out) {
+    for (uint i = 0; i < ttp; i++) {
         memcpy(out + i * lBytes, in + (i ^ r) * lBytes, lBytes);
     }
 }
 
-void inslbl::runE(uint dN1, const uchar *L1, uint ttp, uint lBytes)
-{
+void inslbl::runE(uint dN1, const uchar *L1, uint ttp, uint lBytes) {
     // offline
     uint len = ttp * lBytes;
     uchar p[len];
@@ -47,8 +44,7 @@ void inslbl::runE(uint dN1, const uchar *L1, uint ttp, uint lBytes)
     cons[1]->write(b, len);
 }
 
-void inslbl::runD(uint dN2, const uchar *L2, uint ttp, uint lBytes, uchar *z2)
-{
+void inslbl::runD(uint dN2, const uchar *L2, uint ttp, uint lBytes, uchar *z2) {
     // offline
     uint len = ttp * lBytes;
     uchar p[len];
@@ -75,8 +71,7 @@ void inslbl::runD(uint dN2, const uchar *L2, uint ttp, uint lBytes, uchar *z2)
     cons[0]->write(a, len);
 }
 
-void inslbl::runC(uint ttp, uint lBytes, uchar *pstar)
-{
+void inslbl::runC(uint ttp, uint lBytes, uchar *pstar) {
     // offline
     uint len = ttp * lBytes;
     uint u1 = cons[0]->read_int();
@@ -96,10 +91,8 @@ void inslbl::runC(uint ttp, uint lBytes, uchar *pstar)
     cal_xor(pstar, s2p, len, pstar);
 }
 
-void inslbl::test(uint iter)
-{
-    for (uint test = 0; test < iter; test++)
-    {
+void inslbl::test(uint iter) {
+    for (uint test = 0; test < iter; test++) {
         uint ttp = 256;
         uint lBytes = 16;
         uint len = ttp * lBytes;
@@ -112,8 +105,7 @@ void inslbl::test(uint iter)
         uchar z2[len];
         uchar pstar[len];
 
-        if (strcmp(party, "eddie") == 0)
-        {
+        if (strcmp(party, "eddie") == 0) {
             runE(dN1, L1, ttp, lBytes);
             cons[1]->read(pstar, len);
             dN2 = cons[0]->read_int();
@@ -127,48 +119,33 @@ void inslbl::test(uint iter)
             uchar zero[lBytes];
             memset(zero, 0, lBytes * sizeof(uchar));
             bool pass = true;
-            for (uint i = 0; i < ttp; i++)
-            {
-                if (i == dN)
-                {
-                    if (memcmp(L, out + i * lBytes, lBytes) != 0)
-                    {
+            for (uint i = 0; i < ttp; i++) {
+                if (i == dN) {
+                    if (memcmp(L, out + i * lBytes, lBytes) != 0) {
                         pass = false;
                         break;
                     }
-                }
-                else
-                {
-                    if (memcmp(zero, out + i * lBytes, lBytes) != 0)
-                    {
+                } else {
+                    if (memcmp(zero, out + i * lBytes, lBytes) != 0) {
                         pass = false;
                         break;
                     }
                 }
             }
-            if (pass)
-            {
+            if (pass) {
                 std::cout << "InsLbl passed: " << test << std::endl;
-            }
-            else
-            {
+            } else {
                 std::cerr << "!!!!! InsLbl failed: " << test << std::endl;
             }
-        }
-        else if (strcmp(party, "debbie") == 0)
-        {
+        } else if (strcmp(party, "debbie") == 0) {
             runD(dN2, L2, ttp, lBytes, z2);
             cons[1]->write_int(dN2);
             cons[1]->write(L2, lBytes);
             cons[1]->write(z2, len);
-        }
-        else if (strcmp(party, "charlie") == 0)
-        {
+        } else if (strcmp(party, "charlie") == 0) {
             runC(ttp, lBytes, pstar);
             cons[0]->write(pstar, len);
-        }
-        else
-        {
+        } else {
             std::cout << "Incorrect party: " << party << std::endl;
         }
     }

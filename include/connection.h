@@ -3,8 +3,7 @@
 
 #include "typedef.h"
 
-class connection
-{
+class connection {
 public:
     unsigned long bandwidth = 0u;
 

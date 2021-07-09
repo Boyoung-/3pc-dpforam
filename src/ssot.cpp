@@ -1,16 +1,15 @@
+#include "ssot.h"
+
 #include <iostream>
 
-#include "ssot.h"
 #include "util.h"
 
 ssot::ssot(const char *party, connection *cons[2],
            CryptoPP::AutoSeededRandomPool *rnd,
-           CryptoPP::CTR_Mode<CryptoPP::AES>::Encryption *prgs) : protocol(party, cons, rnd, prgs)
-{
+           CryptoPP::CTR_Mode<CryptoPP::AES>::Encryption *prgs) : protocol(party, cons, rnd, prgs) {
 }
 
-void ssot::runE(uint b1, const uchar *const v01[2], uint mBytes, uchar *p1)
-{
+void ssot::runE(uint b1, const uchar *const v01[2], uint mBytes, uchar *p1) {
     // offline
     uchar y01[2][mBytes];
     prgs[0].GenerateBlock(y01[0], mBytes);
@@ -34,8 +33,7 @@ void ssot::runE(uint b1, const uchar *const v01[2], uint mBytes, uchar *p1)
     cal_xor(u01_p[b1], x, mBytes, p1);
 }
 
-void ssot::runD(uint mBytes)
-{
+void ssot::runD(uint mBytes) {
     // offline
     uchar x01[2][mBytes];
     prgs[0].GenerateBlock(x01[0], mBytes);
@@ -55,8 +53,7 @@ void ssot::runD(uint mBytes)
     cons[1]->write(x, mBytes);
 }
 
-void ssot::runC(uint b0, const uchar *const u01[2], uint mBytes, uchar *p0)
-{
+void ssot::runC(uint b0, const uchar *const u01[2], uint mBytes, uchar *p0) {
     // offline
     uchar x01[2][mBytes];
     prgs[1].GenerateBlock(x01[0], mBytes);
@@ -80,25 +77,21 @@ void ssot::runC(uint b0, const uchar *const u01[2], uint mBytes, uchar *p0)
     cal_xor(v01_p[b0], y, mBytes, p0);
 }
 
-void ssot::test(uint iter)
-{
-    for (uint test = 0; test < iter; test++)
-    {
+void ssot::test(uint iter) {
+    for (uint test = 0; test < iter; test++) {
         uint mBytes = 50;
         uint b0 = rnd->GenerateBit();
         uint b1 = rnd->GenerateBit();
         uchar *u01[2] = {new uchar[mBytes], new uchar[mBytes]};
         uchar *v01[2] = {new uchar[mBytes], new uchar[mBytes]};
-        for (uint i = 0; i < 2; i++)
-        {
+        for (uint i = 0; i < 2; i++) {
             rnd->GenerateBlock(u01[i], mBytes);
             rnd->GenerateBlock(v01[i], mBytes);
         }
         uchar p0[mBytes];
         uchar p1[mBytes];
 
-        if (strcmp(party, "eddie") == 0)
-        {
+        if (strcmp(party, "eddie") == 0) {
             runE(b1, v01, mBytes, p1);
             b0 = cons[1]->read_int();
             cons[1]->read(p0, mBytes);
@@ -109,34 +102,24 @@ void ssot::test(uint iter)
             uchar expected[mBytes];
             cal_xor(u01[b], v01[b], mBytes, expected);
             cal_xor(p0, p1, mBytes, output);
-            if (memcmp(output, expected, mBytes) == 0)
-            {
+            if (memcmp(output, expected, mBytes) == 0) {
                 std::cout << "SSOT passed: " << test << std::endl;
-            }
-            else
-            {
+            } else {
                 std::cerr << "!!!!! SSOT failed: " << test << std::endl;
             }
-        }
-        else if (strcmp(party, "debbie") == 0)
-        {
+        } else if (strcmp(party, "debbie") == 0) {
             runD(mBytes);
-        }
-        else if (strcmp(party, "charlie") == 0)
-        {
+        } else if (strcmp(party, "charlie") == 0) {
             runC(b0, u01, mBytes, p0);
             cons[0]->write_int(b0);
             cons[0]->write(p0, mBytes);
             cons[0]->write(u01[0], mBytes);
             cons[0]->write(u01[1], mBytes);
-        }
-        else
-        {
+        } else {
             std::cout << "Incorrect party: " << party << std::endl;
         }
 
-        for (uint i = 0; i < 2; i++)
-        {
+        for (uint i = 0; i < 2; i++) {
             delete[] u01[i];
             delete[] v01[i];
         }
