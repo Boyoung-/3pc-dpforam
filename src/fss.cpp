@@ -1,9 +1,11 @@
-#include <algorithm>
+#include "fss.h"
+
 #include <string.h>
 #include <x86intrin.h>
 
+#include <algorithm>
+
 #include "bit_perm.h"
-#include "fss.h"
 
 const unsigned long masks[64] = {0x0000000000000001ul, 0x0000000000000002ul,
                                  0x0000000000000004ul, 0x0000000000000008ul, 0x0000000000000010ul,
@@ -28,17 +30,14 @@ const unsigned long masks[64] = {0x0000000000000001ul, 0x0000000000000002ul,
                                  0x0800000000000000ul, 0x1000000000000000ul, 0x2000000000000000ul,
                                  0x4000000000000000ul, 0x8000000000000000ul};
 
-void to_byte_vector(unsigned long input, uchar *output, uint size)
-{
+void to_byte_vector(unsigned long input, uchar *output, uint size) {
 #pragma omp simd aligned(output, masks : 16)
-    for (uint i = 0; i < size; i++)
-    {
+    for (uint i = 0; i < size; i++) {
         output[i] = (input & masks[i]) != 0ul;
     }
 }
 
-void to_byte_vector(block input, uchar *output)
-{
+void to_byte_vector(block input, uchar *output) {
     unsigned long *val = (unsigned long *)&input;
     to_byte_vector(val[0], output, 64);
     to_byte_vector(val[1], output + 64, 64);
@@ -46,8 +45,7 @@ void to_byte_vector(block input, uchar *output)
 
 // TODO: find supported cpu to test BMI2
 void to_byte_vector_with_perm(unsigned long input, uchar *output, uint size,
-                              uint perm)
-{
+                              uint perm) {
 //#if defined(__BMI2__)
 //	input = general_reverse_bits(input, perm ^ 63);
 //	uchar* addr = (uchar*) &input;
@@ -59,15 +57,13 @@ void to_byte_vector_with_perm(unsigned long input, uchar *output, uint size,
 //	}
 //#else
 #pragma omp simd aligned(output, masks : 16)
-    for (uint i = 0; i < size; i++)
-    {
+    for (uint i = 0; i < size; i++) {
         output[i] = (input & masks[i ^ perm]) != 0ul;
     }
     //#endif
 }
 
-fss1bit::fss1bit()
-{
+fss1bit::fss1bit() {
     long long userkey1 = 597349;
     long long userkey2 = 121379;
     block userkey = dpf_make_block(userkey1, userkey2);
@@ -76,24 +72,18 @@ fss1bit::fss1bit()
     AES_set_encrypt_key(userkey, &aes_key);
 }
 
-uint fss1bit::gen(unsigned long alpha, uint m, uchar *keys[2])
-{
+uint fss1bit::gen(unsigned long alpha, uint m, uchar *keys[2]) {
     return GEN(&aes_key, alpha, m, keys, keys + 1);
 }
 
-void fss1bit::eval_all(const uchar *key, uint m, uchar *out)
-{
+void fss1bit::eval_all(const uchar *key, uint m, uchar *out) {
     block *res = EVALFULL(&aes_key, key);
-    if (m <= 6)
-    {
+    if (m <= 6) {
         to_byte_vector(((unsigned long *)res)[0], out, (1 << m));
-    }
-    else
-    {
+    } else {
         uint maxlayer = std::max((int)m - 7, 0);
         unsigned long groups = 1ul << maxlayer;
-        for (unsigned long i = 0; i < groups; i++)
-        {
+        for (unsigned long i = 0; i < groups; i++) {
             to_byte_vector(res[i], out + (i << 7));
         }
     }
@@ -101,23 +91,18 @@ void fss1bit::eval_all(const uchar *key, uint m, uchar *out)
 }
 
 void fss1bit::eval_all_with_perm(const uchar *key, uint m, unsigned long perm,
-                                 uchar *out)
-{
+                                 uchar *out) {
     block *res = EVALFULL(&aes_key, key);
     unsigned long *ptr = (unsigned long *)res;
     uint index_perm = perm & 63;
-    if (m <= 6)
-    {
+    if (m <= 6) {
         to_byte_vector_with_perm(ptr[0], out, (1 << m), index_perm);
-    }
-    else
-    {
+    } else {
         unsigned long group_perm = perm >> 6;
         uint maxlayer = std::max((int)m - 6, 0);
         unsigned long groups = 1ul << maxlayer;
         //#pragma omp parallel for
-        for (unsigned long i = 0; i < groups; i++)
-        {
+        for (unsigned long i = 0; i < groups; i++) {
             to_byte_vector_with_perm(ptr[i ^ group_perm], out + (i << 6), 64,
                                      index_perm);
         }

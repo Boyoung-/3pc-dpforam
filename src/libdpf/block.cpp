@@ -1,27 +1,23 @@
 #include "block.h"
-#include "aes.h"
-#include "libdpf.h"
 
+#include <openssl/rand.h>
 #include <stdint.h>
 #include <stdio.h>
 #include <time.h>
-#include <openssl/rand.h>
+
+#include "aes.h"
+#include "libdpf.h"
 
 static AES_KEY rand_aes_key;
 static uint64_t current_rand_index;
 
-block dpf_seed(block *seed)
-{
+block dpf_seed(block *seed) {
     block cur_seed;
     current_rand_index = 0;
-    if (seed)
-    {
+    if (seed) {
         cur_seed = *seed;
-    }
-    else
-    {
-        if (RAND_bytes((unsigned char *)&cur_seed, 16) == 0)
-        {
+    } else {
+        if (RAND_bytes((unsigned char *)&cur_seed, 16) == 0) {
             fprintf(stderr, "** unable to seed securely\n");
             return dpf_zero_block();
         }
@@ -31,8 +27,7 @@ block dpf_seed(block *seed)
 }
 
 // inline
-block dpf_random_block(void)
-{
+block dpf_random_block(void) {
     block out;
     uint64_t *val;
     int i;
@@ -46,8 +41,7 @@ block dpf_random_block(void)
     return _mm_aesenclast_si128(out, rand_aes_key.rd_key[i]);
 }
 
-block *dpf_allocate_blocks(size_t nblocks)
-{
+block *dpf_allocate_blocks(size_t nblocks) {
     //int res;
     block *blks = NULL;
     blks = (block *)calloc(nblocks, sizeof(block));
@@ -61,10 +55,8 @@ block *dpf_allocate_blocks(size_t nblocks)
     return blks;
 }
 
-void _output_bit_to_bit(uint64_t input)
-{
-    for (int i = 0; i < 64; i++)
-    {
+void _output_bit_to_bit(uint64_t input) {
+    for (int i = 0; i < 64; i++) {
         if ((1ll << i) & input)
             printf("1");
         else
@@ -72,8 +64,7 @@ void _output_bit_to_bit(uint64_t input)
     }
 }
 
-void dpf_cb(block input)
-{
+void dpf_cb(block input) {
     uint64_t *val = (uint64_t *)&input;
 
     //printf("%016lx%016lx\n", val[0], val[1]);
@@ -82,10 +73,10 @@ void dpf_cb(block input)
     printf("\n");
 }
 
-void dpf_cbnotnewline(block input)
-{
-    uint64_t *val = (uint64_t *)&input;
+// void dpf_cbnotnewline(block input)
+// {
+//     uint64_t *val = (uint64_t *)&input;
 
-    _output_bit_to_bit(val[0]);
-    _output_bit_to_bit(val[1]);
-}
+//     _output_bit_to_bit(val[0]);
+//     _output_bit_to_bit(val[1]);
+// }

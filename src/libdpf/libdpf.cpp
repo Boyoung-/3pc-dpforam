@@ -1,8 +1,9 @@
+#include "libdpf.h"
+
 #include <omp.h>
 #include <stdio.h>
 #include <string.h>
 
-#include "libdpf.h"
 #include "block.h"
 
 #define max(a, b)                   \
@@ -13,31 +14,25 @@
             _a > _b ? _a : _b;      \
         })
 
-block dpf_reverse_lsb(block input)
-{
+block dpf_reverse_lsb(block input) {
     static long long b1 = 0;
     static long long b2 = 1;
     block _xor = dpf_make_block(b1, b2);
     return dpf_xor(input, _xor);
 }
 
-block dpf_set_lsb_zero(block input)
-{
+block dpf_set_lsb_zero(block input) {
     int lsb = dpf_lsb(input);
 
-    if (lsb == 1)
-    {
+    if (lsb == 1) {
         return dpf_reverse_lsb(input);
-    }
-    else
-    {
+    } else {
         return input;
     }
 }
 
 void PRG(AES_KEY *key, block input, block *output1, block *output2, int *bit1,
-         int *bit2)
-{
+         int *bit2) {
     input = dpf_set_lsb_zero(input);
 
     block stash[2];
@@ -57,14 +52,12 @@ void PRG(AES_KEY *key, block input, block *output1, block *output2, int *bit1,
     *output2 = dpf_set_lsb_zero(stash[1]);
 }
 
-static int getbit(long x, int n, int b)
-{
+static int getbit(long x, int n, int b) {
     return (x >> (n - b)) & 1;
 }
 
 int GEN(AES_KEY *key, long alpha, int n, unsigned char **k0,
-        unsigned char **k1)
-{
+        unsigned char **k1) {
     int maxlayer = max(n - 7, 0);
     //int maxlayer = n;
 
@@ -81,24 +74,20 @@ int GEN(AES_KEY *key, long alpha, int n, unsigned char **k0,
     s[0][1] = dpf_set_lsb_zero(s[0][1]);
 
     int i;
-    block s0[2], s1[2]; // 0=L,1=R
+    block s0[2], s1[2];  // 0=L,1=R
 #define LEFT 0
 #define RIGHT 1
     int t0[2], t1[2];
-    for (i = 1; i <= maxlayer; i++)
-    {
+    for (i = 1; i <= maxlayer; i++) {
         PRG(key, s[i - 1][0], &s0[LEFT], &s0[RIGHT], &t0[LEFT], &t0[RIGHT]);
         PRG(key, s[i - 1][1], &s1[LEFT], &s1[RIGHT], &t1[LEFT], &t1[RIGHT]);
 
         int keep, lose;
         int alphabit = getbit(alpha, n, i);
-        if (alphabit == 0)
-        {
+        if (alphabit == 0) {
             keep = LEFT;
             lose = RIGHT;
-        }
-        else
-        {
+        } else {
             keep = RIGHT;
             lose = LEFT;
         }
@@ -108,24 +97,18 @@ int GEN(AES_KEY *key, long alpha, int n, unsigned char **k0,
         tCW[i - 1][LEFT] = t0[LEFT] ^ t1[LEFT] ^ alphabit ^ 1;
         tCW[i - 1][RIGHT] = t0[RIGHT] ^ t1[RIGHT] ^ alphabit;
 
-        if (t[i - 1][0] == 1)
-        {
+        if (t[i - 1][0] == 1) {
             s[i][0] = dpf_xor(s0[keep], sCW[i - 1]);
             t[i][0] = t0[keep] ^ tCW[i - 1][keep];
-        }
-        else
-        {
+        } else {
             s[i][0] = s0[keep];
             t[i][0] = t0[keep];
         }
 
-        if (t[i - 1][1] == 1)
-        {
+        if (t[i - 1][1] == 1) {
             s[i][1] = dpf_xor(s1[keep], sCW[i - 1]);
             t[i][1] = t1[keep] ^ tCW[i - 1][keep];
-        }
-        else
-        {
+        } else {
             s[i][1] = s1[keep];
             t[i][1] = t1[keep];
         }
@@ -136,32 +119,25 @@ int GEN(AES_KEY *key, long alpha, int n, unsigned char **k0,
     finalblock = dpf_reverse_lsb(finalblock);
 
     char shift = (alpha)&127;
-    if (shift & 64)
-    {
+    if (shift & 64) {
         finalblock = dpf_left_shirt(finalblock, 64);
     }
-    if (shift & 32)
-    {
+    if (shift & 32) {
         finalblock = dpf_left_shirt(finalblock, 32);
     }
-    if (shift & 16)
-    {
+    if (shift & 16) {
         finalblock = dpf_left_shirt(finalblock, 16);
     }
-    if (shift & 8)
-    {
+    if (shift & 8) {
         finalblock = dpf_left_shirt(finalblock, 8);
     }
-    if (shift & 4)
-    {
+    if (shift & 4) {
         finalblock = dpf_left_shirt(finalblock, 4);
     }
-    if (shift & 2)
-    {
+    if (shift & 2) {
         finalblock = dpf_left_shirt(finalblock, 2);
     }
-    if (shift & 1)
-    {
+    if (shift & 1) {
         finalblock = dpf_left_shirt(finalblock, 1);
     }
     //dpf_cb(finalblock);
@@ -178,8 +154,7 @@ int GEN(AES_KEY *key, long alpha, int n, unsigned char **k0,
     buff0 = new unsigned char[size];
     buff1 = new unsigned char[size];
 
-    if (buff0 == NULL || buff1 == NULL)
-    {
+    if (buff0 == NULL || buff1 == NULL) {
         printf("Memory allocation failed\n");
         exit(1);
     }
@@ -187,8 +162,7 @@ int GEN(AES_KEY *key, long alpha, int n, unsigned char **k0,
     buff0[0] = n;
     memcpy(&buff0[1], &s[0][0], 16);
     buff0[17] = t[0][0];
-    for (i = 1; i <= maxlayer; i++)
-    {
+    for (i = 1; i <= maxlayer; i++) {
         memcpy(&buff0[18 * i], &sCW[i - 1], 16);
         buff0[18 * i + 16] = tCW[i - 1][0];
         buff0[18 * i + 17] = tCW[i - 1][1];
@@ -207,8 +181,7 @@ int GEN(AES_KEY *key, long alpha, int n, unsigned char **k0,
     return size;
 }
 
-block EVAL(AES_KEY *key, unsigned char *k, long x)
-{
+block EVAL(AES_KEY *key, unsigned char *k, long x) {
     int n = k[0];
     int maxlayer = max(n - 7, 0);
 
@@ -222,8 +195,7 @@ block EVAL(AES_KEY *key, unsigned char *k, long x)
     t[0] = k[17];
 
     int i;
-    for (i = 1; i <= maxlayer; i++)
-    {
+    for (i = 1; i <= maxlayer; i++) {
         memcpy(&sCW[i - 1], &k[18 * i], 16);
         tCW[i - 1][0] = k[18 * i + 16];
         tCW[i - 1][1] = k[18 * i + 17];
@@ -233,12 +205,10 @@ block EVAL(AES_KEY *key, unsigned char *k, long x)
 
     block sL, sR;
     int tL, tR;
-    for (i = 1; i <= maxlayer; i++)
-    {
+    for (i = 1; i <= maxlayer; i++) {
         PRG(key, s[i - 1], &sL, &sR, &tL, &tR);
 
-        if (t[i - 1] == 1)
-        {
+        if (t[i - 1] == 1) {
             sL = dpf_xor(sL, sCW[i - 1]);
             sR = dpf_xor(sR, sCW[i - 1]);
             tL = tL ^ tCW[i - 1][0];
@@ -246,13 +216,10 @@ block EVAL(AES_KEY *key, unsigned char *k, long x)
         }
 
         int xbit = getbit(x, n, i);
-        if (xbit == 0)
-        {
+        if (xbit == 0) {
             s[i] = sL;
             t[i] = tL;
-        }
-        else
-        {
+        } else {
             s[i] = sR;
             t[i] = tR;
         }
@@ -260,21 +227,18 @@ block EVAL(AES_KEY *key, unsigned char *k, long x)
 
     block res;
     res = s[maxlayer];
-    if (t[maxlayer] == 1)
-    {
+    if (t[maxlayer] == 1) {
         res = dpf_reverse_lsb(res);
     }
 
-    if (t[maxlayer] == 1)
-    {
+    if (t[maxlayer] == 1) {
         res = dpf_xor(res, finalblock);
     }
 
     return res;
 }
 
-block *EVALFULL(AES_KEY *key, const unsigned char *k)
-{
+block *EVALFULL(AES_KEY *key, const unsigned char *k) {
     int n = k[0];
     int maxlayer = max(n - 7, 0);
     long maxlayeritem = 1 << maxlayer;
@@ -283,8 +247,7 @@ block *EVALFULL(AES_KEY *key, const unsigned char *k)
     //int t[2][maxlayeritem];
     block *s[2];
     int *t[2];
-    for (int ii = 0; ii < 2; ii++)
-    {
+    for (int ii = 0; ii < 2; ii++) {
         s[ii] = new block[maxlayeritem];
         t[ii] = new int[maxlayeritem];
     }
@@ -300,8 +263,7 @@ block *EVALFULL(AES_KEY *key, const unsigned char *k)
 
     int i;
     long j;
-    for (i = 1; i <= maxlayer; i++)
-    {
+    for (i = 1; i <= maxlayer; i++) {
         memcpy(&sCW[i - 1], &k[18 * i], 16);
         tCW[i - 1][0] = k[18 * i + 16];
         tCW[i - 1][1] = k[18 * i + 17];
@@ -311,18 +273,15 @@ block *EVALFULL(AES_KEY *key, const unsigned char *k)
 
     //block sL, sR;
     //int tL, tR;
-    for (i = 1; i <= maxlayer; i++)
-    {
+    for (i = 1; i <= maxlayer; i++) {
         long itemnumber = 1 << (i - 1);
         //#pragma omp parallel for
-        for (j = 0; j < itemnumber; j++)
-        {
+        for (j = 0; j < itemnumber; j++) {
             block sL, sR;
             int tL, tR;
             PRG(key, s[1 - curlayer][j], &sL, &sR, &tL, &tR);
 
-            if (t[1 - curlayer][j] == 1)
-            {
+            if (t[1 - curlayer][j] == 1) {
                 sL = dpf_xor(sL, sCW[i - 1]);
                 sR = dpf_xor(sR, sCW[i - 1]);
                 tL = tL ^ tCW[i - 1][0];
@@ -341,23 +300,19 @@ block *EVALFULL(AES_KEY *key, const unsigned char *k)
     block *res = (block *)malloc(sizeof(block) * itemnumber);
 
     //#pragma omp parallel for
-    for (j = 0; j < itemnumber; j++)
-    {
+    for (j = 0; j < itemnumber; j++) {
         res[j] = s[1 - curlayer][j];
 
-        if (t[1 - curlayer][j] == 1)
-        {
+        if (t[1 - curlayer][j] == 1) {
             res[j] = dpf_reverse_lsb(res[j]);
         }
 
-        if (t[1 - curlayer][j] == 1)
-        {
+        if (t[1 - curlayer][j] == 1) {
             res[j] = dpf_xor(res[j], finalblock);
         }
     }
 
-    for (int ii = 0; ii < 2; ii++)
-    {
+    for (int ii = 0; ii < 2; ii++) {
         delete[] s[ii];
         delete[] t[ii];
     }
@@ -365,8 +320,7 @@ block *EVALFULL(AES_KEY *key, const unsigned char *k)
     return res;
 }
 
-void test_libdpf()
-{
+void test_libdpf() {
     long long userkey1 = 597349;
     long long userkey2 = 121379;
     block userkey = dpf_make_block(userkey1, userkey2);
@@ -401,8 +355,7 @@ void test_libdpf()
     resf1 = EVALFULL(&key, k1);
 
     long j;
-    for (j = 0; j < 1; j++)
-    {
+    for (j = 0; j < 1; j++) {
         printf("Group %ld\n", j);
 
         dpf_cb(resf0[j]);

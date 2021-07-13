@@ -39,6 +39,6 @@ block dpf_random_block(void);
 block *dpf_allocate_blocks(size_t nblocks);
 
 void dpf_cb(block input);
-void dpf_cbnotnewline(block input);
+// void dpf_cbnotnewline(block input);
 
 #endif
