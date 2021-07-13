@@ -5,7 +5,7 @@
 
 #include <iostream>
 
-#include "inslbl.h"
+#include "insert_label.h"
 #include "ssot.h"
 #include "util.h"
 
@@ -140,7 +140,7 @@ void dpforam::gen_delta_array(const uint idx_23[2], uint numChunk,
                               uint chunkBytes, const uchar *const delta_23[2],
                               uchar *delta_array_23[2]) {
     uint arrayBytes = numChunk * chunkBytes;
-    inslbl il(party, cons, rnd, prgs);
+    insert_label il(party, cons, rnd, prgs);
     if (strcmp(party, "eddie") == 0) {
         uchar L1[chunkBytes];
         cal_xor(delta_23[0], delta_23[1], chunkBytes, L1);

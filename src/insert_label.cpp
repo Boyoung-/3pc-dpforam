@@ -1,12 +1,11 @@
-#include "inslbl.h"
-
 #include <iostream>
 
+#include "insert_label.h"
 #include "util.h"
 
-inslbl::inslbl(const char *party, connection *cons[2],
-               CryptoPP::AutoSeededRandomPool *rnd,
-               CryptoPP::CTR_Mode<CryptoPP::AES>::Encryption *prgs) : protocol(party, cons, rnd, prgs) {
+insert_label::insert_label(const char *party, connection *cons[2],
+                           CryptoPP::AutoSeededRandomPool *rnd,
+                           CryptoPP::CTR_Mode<CryptoPP::AES>::Encryption *prgs) : protocol(party, cons, rnd, prgs) {
 }
 
 void xor_perm(const uchar *in, uint r, uint ttp, uint lBytes, uchar *out) {
@@ -15,7 +14,7 @@ void xor_perm(const uchar *in, uint r, uint ttp, uint lBytes, uchar *out) {
     }
 }
 
-void inslbl::runE(uint dN1, const uchar *L1, uint ttp, uint lBytes) {
+void insert_label::runE(uint dN1, const uchar *L1, uint ttp, uint lBytes) {
     // offline
     uint len = ttp * lBytes;
     uchar p[len];
@@ -44,7 +43,7 @@ void inslbl::runE(uint dN1, const uchar *L1, uint ttp, uint lBytes) {
     cons[1]->write(b, len);
 }
 
-void inslbl::runD(uint dN2, const uchar *L2, uint ttp, uint lBytes, uchar *z2) {
+void insert_label::runD(uint dN2, const uchar *L2, uint ttp, uint lBytes, uchar *z2) {
     // offline
     uint len = ttp * lBytes;
     uchar p[len];
@@ -71,7 +70,7 @@ void inslbl::runD(uint dN2, const uchar *L2, uint ttp, uint lBytes, uchar *z2) {
     cons[0]->write(a, len);
 }
 
-void inslbl::runC(uint ttp, uint lBytes, uchar *pstar) {
+void insert_label::runC(uint ttp, uint lBytes, uchar *pstar) {
     // offline
     uint len = ttp * lBytes;
     uint u1 = cons[0]->read_int();
@@ -91,7 +90,7 @@ void inslbl::runC(uint ttp, uint lBytes, uchar *pstar) {
     cal_xor(pstar, s2p, len, pstar);
 }
 
-void inslbl::test(uint iter) {
+void insert_label::test(uint iter) {
     for (uint test = 0; test < iter; test++) {
         uint ttp = 256;
         uint lBytes = 16;
@@ -133,9 +132,9 @@ void inslbl::test(uint iter) {
                 }
             }
             if (pass) {
-                std::cout << "InsLbl passed: " << test << std::endl;
+                std::cout << "insert_label passed: " << test << std::endl;
             } else {
-                std::cerr << "!!!!! InsLbl failed: " << test << std::endl;
+                std::cerr << "!!!!! insert_label failed: " << test << std::endl;
             }
         } else if (strcmp(party, "debbie") == 0) {
             runD(dN2, L2, ttp, lBytes, z2);

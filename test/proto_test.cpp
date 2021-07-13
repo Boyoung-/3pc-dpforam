@@ -8,7 +8,7 @@
 
 #include "cxxopts.hpp"
 #include "dpforam.h"
-#include "inslbl.h"
+#include "insert_label.h"
 #include "simple_socket.h"
 #include "ssot.h"
 #include "util.h"
@@ -19,7 +19,7 @@ using namespace std;
 int main(int argc, char *argv[]) {
     cxxopts::Options options(argv[0], "3PC DPF-ORAM IMPLEMENTATION");
     options.positional_help("[optional args]").show_positional_help();
-    options.add_options()("par", "Party:[eddie|debbie|charlie]", cxxopts::value<string>())("proto", "Protocol:[dpforam|ssot|inslbl]", cxxopts::value<string>()->default_value("dpforam"))("eip", "Eddie's ip", cxxopts::value<string>()->default_value("127.0.0.1"))("dip", "Debbie's ip", cxxopts::value<string>()->default_value("127.0.0.1"))("tau", "Tau", cxxopts::value<uint>()->default_value("3"))("logn", "LogN", cxxopts::value<uint>()->default_value("12"))("db", "DBytes", cxxopts::value<uint>()->default_value("4"))("thr", "Threads", cxxopts::value<uint>()->default_value("1"))("iter", "Iterations", cxxopts::value<uint>()->default_value("100"));
+    options.add_options()("par", "Party:[eddie|debbie|charlie]", cxxopts::value<string>())("proto", "Protocol:[dpforam|ssot|insert_label]", cxxopts::value<string>()->default_value("dpforam"))("eip", "Eddie's ip", cxxopts::value<string>()->default_value("127.0.0.1"))("dip", "Debbie's ip", cxxopts::value<string>()->default_value("127.0.0.1"))("tau", "Tau", cxxopts::value<uint>()->default_value("3"))("logn", "LogN", cxxopts::value<uint>()->default_value("12"))("db", "DBytes", cxxopts::value<uint>()->default_value("4"))("thr", "Threads", cxxopts::value<uint>()->default_value("1"))("iter", "Iterations", cxxopts::value<uint>()->default_value("100"));
 
     auto result = options.parse(argc, argv);
     if (result.count("par") == 0) {
@@ -94,8 +94,8 @@ int main(int argc, char *argv[]) {
     protocol *test_proto = NULL;
     if (proto == "ssot") {
         test_proto = new ssot(party.c_str(), cons, &rnd, prgs);
-    } else if (proto == "inslbl") {
-        test_proto = new inslbl(party.c_str(), cons, &rnd, prgs);
+    } else if (proto == "insert_label") {
+        test_proto = new insert_label(party.c_str(), cons, &rnd, prgs);
     } else if (proto == "dpforam") {
         unsigned long init_wc = current_timestamp();
         test_proto = new dpforam(party.c_str(), cons, &rnd, prgs, tau, logN,
